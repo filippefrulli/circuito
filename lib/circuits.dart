@@ -1,12 +1,8 @@
-import 'dart:io';
-import 'package:circuito/settings/language_page.dart';
-import 'package:circuito/settings/privacy_policy_page.dart';
-import 'package:circuito/widgets/divider.dart';
+import 'package:circuito/objects/circuit.dart';
+import 'package:circuito/utils/database.dart';
 import 'package:circuito/widgets/page_title.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class CircuitsPage extends StatefulWidget {
   const CircuitsPage({super.key});
@@ -16,6 +12,10 @@ class CircuitsPage extends StatefulWidget {
 }
 
 class _CircuitsPageState extends State<CircuitsPage> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _countryController = TextEditingController();
+
   @override
   initState() {
     super.initState();
@@ -29,45 +29,225 @@ class _CircuitsPageState extends State<CircuitsPage> {
   }
 
   Widget pageBody() {
+    final colors = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: SingleChildScrollView(
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.max,
           children: [
             const SizedBox(height: 64),
-            PageTitleWidget(
-              intro: 'my_pl'.tr(),
-              title: 'circuits'.tr(),
-            ),
+            topBar(colors),
             const SizedBox(height: 32),
-            carItem('Porsche 911 GT'),
+            circuitsList(colors),
+            const SizedBox(height: 32),
+            addCircuitButton(colors),
+            const SizedBox(height: 32),
           ],
         ),
       ),
     );
   }
 
-  Widget carItem(String name) {
+  Widget topBar(ColorScheme colors) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        PageTitleWidget(
+          intro: 'my_sg'.tr(),
+          title: 'circuits'.tr(),
+        ),
+        Expanded(
+          child: Container(),
+        ),
+      ],
+    );
+  }
+
+  Widget circuitsList(ColorScheme colors) {
+    return Expanded(
+      child: FutureBuilder<List<Circuit>>(
+        future: DatabaseHelper.instance.getCircuits(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Padding(
+              padding: const EdgeInsets.all(16),
+              child: Center(
+                child: Text(
+                  'No circuits yet',
+                  style: Theme.of(context).textTheme.displayMedium,
+                ),
+              ),
+            );
+          }
+
+          return ListView.builder(
+            padding: EdgeInsets.zero,
+            itemCount: snapshot.data!.length,
+            itemBuilder: (context, index) {
+              return circuitItem(snapshot.data![index], colors);
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget circuitItem(Circuit circuit, ColorScheme colors) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Container(
-        decoration: const BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(8.0)),
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          border: Border.all(color: colors.primary, width: 2),
+          borderRadius: const BorderRadius.all(Radius.circular(25)),
         ),
         child: Row(
-          children: <Widget>[
-            const SizedBox(width: 16),
-            Text(
-              name,
-              style: Theme.of(context).textTheme.displayMedium,
-              maxLines: 1,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(width: 8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 8),
+                Text(
+                  circuit.name,
+                  style: Theme.of(context).textTheme.displayMedium,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  circuit.country.toString(),
+                  style: Theme.of(context).textTheme.labelSmall,
+                ),
+              ],
+            ),
+            Expanded(
+              child: Container(),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Widget addCircuitButton(ColorScheme colors) {
+    return Container(
+      height: 60,
+      width: MediaQuery.of(context).size.width - 96,
+      decoration: BoxDecoration(
+        color: colors.primary,
+        borderRadius: BorderRadius.circular(25),
+      ),
+      child: TextButton(
+        onPressed: () => {_showAddCircuitDialog(colors)},
+        child: Text(
+          "add_circuit".tr(),
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showAddCircuitDialog(ColorScheme colors) async {
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(
+            'add_circuit'.tr(),
+            style: Theme.of(context).textTheme.displayMedium,
+          ),
+          content: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: _nameController,
+                  decoration: InputDecoration(
+                    labelText: 'Circuit Name',
+                    labelStyle: Theme.of(context).textTheme.labelSmall,
+                  ),
+                  style: Theme.of(context).textTheme.displayMedium,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter the circuit name';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: _countryController,
+                  decoration: InputDecoration(
+                    labelText: 'Country',
+                    labelStyle: Theme.of(context).textTheme.labelSmall,
+                  ),
+                  style: Theme.of(context).textTheme.displayMedium,
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter country';
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                _clearControllers();
+                Navigator.pop(context);
+              },
+              child: Text(
+                'Cancel',
+                style: Theme.of(context).textTheme.displayMedium,
+              ),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                color: colors.primary,
+                borderRadius: BorderRadius.circular(15),
+              ),
+              width: 80,
+              child: TextButton(
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    final circuit = Circuit(
+                      name: _nameController.text,
+                      country: _countryController.text,
+                    );
+                    await DatabaseHelper.instance.insertCircuit(circuit);
+                    _clearControllers();
+                    Navigator.pop(context);
+                    setState(() {});
+                  }
+                },
+                child: Text(
+                  'Save',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _clearControllers() {
+    _nameController.clear();
+    _countryController.clear();
   }
 }

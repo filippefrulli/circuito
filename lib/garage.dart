@@ -1,12 +1,8 @@
-import 'dart:io';
-import 'package:circuito/settings/language_page.dart';
-import 'package:circuito/settings/privacy_policy_page.dart';
-import 'package:circuito/widgets/divider.dart';
+import 'package:circuito/objects/car.dart';
+import 'package:circuito/utils/database.dart';
 import 'package:circuito/widgets/page_title.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class GaragePage extends StatefulWidget {
   const GaragePage({super.key});
@@ -16,6 +12,10 @@ class GaragePage extends StatefulWidget {
 }
 
 class _GaragePageState extends State<GaragePage> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _yearController = TextEditingController();
+
   @override
   initState() {
     super.initState();
@@ -32,27 +32,75 @@ class _GaragePageState extends State<GaragePage> {
     final colors = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: SingleChildScrollView(
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.max,
           children: [
             const SizedBox(height: 64),
-            PageTitleWidget(
-              intro: 'my_sg'.tr(),
-              title: 'garage'.tr(),
-            ),
+            topBar(colors),
             const SizedBox(height: 32),
-            carItem(colors, 'Porsche 911 GT', 1997, 'assets/images/porsche.png'),
-            carItem(colors, 'Porsche 911 GT', 1997, 'assets/images/porsche.png'),
+            carList(colors),
+            const SizedBox(height: 32),
+            addCarButton(colors),
+            const SizedBox(height: 32),
           ],
         ),
       ),
     );
   }
 
-  Widget carItem(ColorScheme colors, String name, int year, String image) {
+  Widget topBar(ColorScheme colors) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        PageTitleWidget(
+          intro: 'my_sg'.tr(),
+          title: 'garage'.tr(),
+        ),
+        Expanded(
+          child: Container(),
+        ),
+      ],
+    );
+  }
+
+  Widget carList(ColorScheme colors) {
+    return Expanded(
+      child: FutureBuilder<List<Car>>(
+        future: DatabaseHelper.instance.getCars(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(
+              child: Text(
+                'No cars yet',
+                style: TextStyle(color: colors.onSurface),
+              ),
+            );
+          }
+
+          return ListView.builder(
+            padding: EdgeInsets.zero,
+            itemCount: snapshot.data!.length,
+            itemBuilder: (context, index) {
+              return carItem(snapshot.data![index], colors);
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget carItem(Car car, ColorScheme colors) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Container(
@@ -70,12 +118,12 @@ class _GaragePageState extends State<GaragePage> {
               children: [
                 const SizedBox(height: 8),
                 Text(
-                  name,
+                  car.name,
                   style: Theme.of(context).textTheme.displayMedium,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  year.toString(),
+                  car.year.toString(),
                   style: Theme.of(context).textTheme.labelSmall,
                 ),
               ],
@@ -98,5 +146,117 @@ class _GaragePageState extends State<GaragePage> {
         ),
       ),
     );
+  }
+
+  Widget addCarButton(ColorScheme colors) {
+    return Container(
+      height: 60,
+      width: MediaQuery.of(context).size.width - 96,
+      decoration: BoxDecoration(
+        color: colors.primary,
+        borderRadius: BorderRadius.circular(25),
+      ),
+      child: TextButton(
+        onPressed: () => {_showAddCarDialog(colors)},
+        child: Text(
+          "add_car".tr(),
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showAddCarDialog(ColorScheme colors) async {
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(
+            'add_car'.tr(),
+            style: Theme.of(context).textTheme.displayMedium,
+          ),
+          content: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: _nameController,
+                  decoration: InputDecoration(
+                    labelText: 'Car Name',
+                    labelStyle: Theme.of(context).textTheme.labelSmall,
+                  ),
+                  style: Theme.of(context).textTheme.displayMedium,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter car name';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: _yearController,
+                  decoration: InputDecoration(
+                    labelText: 'Year',
+                    labelStyle: Theme.of(context).textTheme.labelSmall,
+                  ),
+                  style: Theme.of(context).textTheme.displayMedium,
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter year';
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                _clearControllers();
+                Navigator.pop(context);
+              },
+              child: Text(
+                'Cancel',
+                style: Theme.of(context).textTheme.displayMedium,
+              ),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                color: colors.primary,
+                borderRadius: BorderRadius.circular(15),
+              ),
+              width: 80,
+              child: TextButton(
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    final car = Car(
+                      name: _nameController.text,
+                      year: int.parse(_yearController.text),
+                      image: 'assets/images/porsche.png',
+                    );
+                    await DatabaseHelper.instance.insertCar(car);
+                    _clearControllers();
+                    Navigator.pop(context);
+                    setState(() {});
+                  }
+                },
+                child: Text(
+                  'Save',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _clearControllers() {
+    _nameController.clear();
+    _yearController.clear();
   }
 }

@@ -33,18 +33,16 @@ class _LanguagePageState extends State<LanguagePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       body: body(),
     );
   }
 
   Widget body() {
     return Column(
-      children: <Widget>[
+      children: [
         const SizedBox(height: 48),
         Text(
           'Select your language',
-          maxLines: 1,
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.displayLarge,
         ),
@@ -137,6 +135,8 @@ class _LanguagePageState extends State<LanguagePage> {
       return DelayedDisplay(
         delay: const Duration(milliseconds: 100),
         child: Container(
+          width: 200,
+          height: 70,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           decoration: BoxDecoration(
             color: Colors.black,
@@ -164,7 +164,9 @@ class _LanguagePageState extends State<LanguagePage> {
         ),
       );
     } else {
-      return Container();
+      return Container(
+        height: 70,
+      );
     }
   }
 }

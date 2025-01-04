@@ -1,6 +1,5 @@
 import 'package:circuito/settings/settings_page.dart';
 import 'package:circuito/widgets/page_title.dart';
-import 'package:delayed_display/delayed_display.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
@@ -61,7 +60,7 @@ class _HomePageState extends State<HomePage> {
       children: [
         PageTitleWidget(
           intro: 'welcome'.tr(),
-          title: 'Giorgio',
+          title: 'Pippo',
         ),
         Expanded(
           child: Container(),
@@ -109,7 +108,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget centerButton(ColorScheme colors, IconData icon, String text, String route) {
     return Container(
-      height: (MediaQuery.of(context).size.width / 2) - 72,
+      height: (MediaQuery.of(context).size.width / 2) - 82,
       width: (MediaQuery.of(context).size.width / 2) - 44,
       decoration: BoxDecoration(
         border: Border.all(
