@@ -1,4 +1,5 @@
-import 'package:circuito/settings/settings_page.dart';
+import 'package:circuito/pages/races/create_race_page.dart';
+import 'package:circuito/pages/settings/settings_page.dart';
 import 'package:circuito/widgets/page_title.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -20,8 +21,6 @@ class _HomePageState extends State<HomePage> {
   void dispose() {
     super.dispose();
   }
-
-  int isContinue = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +46,8 @@ class _HomePageState extends State<HomePage> {
           Expanded(
             child: Container(),
           ),
-          isContinue == 1 ? continueRaceButton(colors) : newRaceButton(colors),
+          //isContinue == 1 ? continueRaceButton(colors) :
+          newRaceButton(colors),
           const SizedBox(height: 32),
         ],
       ),
@@ -185,9 +185,11 @@ class _HomePageState extends State<HomePage> {
       ),
       child: TextButton(
         onPressed: () => {
-          setState(() {
-            isContinue = 1;
-          })
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const CreateRacePage(),
+            ),
+          ),
         },
         child: Text(
           "new_race".tr(),
@@ -206,11 +208,7 @@ class _HomePageState extends State<HomePage> {
         borderRadius: BorderRadius.circular(25),
       ),
       child: TextButton(
-        onPressed: () => {
-          setState(() {
-            isContinue = 0;
-          })
-        },
+        onPressed: () => {},
         child: Text(
           "continue_race".tr(),
           style: Theme.of(context).textTheme.bodyMedium,

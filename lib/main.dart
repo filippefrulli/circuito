@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'package:circuito/circuits.dart';
-import 'package:circuito/garage.dart';
-import 'package:circuito/home_page.dart';
-import 'package:circuito/settings/language_page.dart';
+import 'package:circuito/pages/circuits_page.dart';
+import 'package:circuito/pages/garage_page.dart';
+import 'package:circuito/pages/home_page.dart';
+import 'package:circuito/pages/settings/language_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:oktoast/oktoast.dart';

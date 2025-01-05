@@ -1,6 +1,6 @@
 import 'dart:io';
-import 'package:circuito/settings/language_page.dart';
-import 'package:circuito/settings/privacy_policy_page.dart';
+import 'package:circuito/pages/settings/language_page.dart';
+import 'package:circuito/pages/settings/privacy_policy_page.dart';
 import 'package:circuito/widgets/divider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';

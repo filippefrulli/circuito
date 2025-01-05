@@ -14,4 +14,13 @@ class Car {
       'image': image,
     };
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is Car && other.id == id && other.name == name && other.year == year;
+  }
+
+  @override
+  int get hashCode => id.hashCode ^ name.hashCode ^ year.hashCode;
 }

@@ -11,6 +11,10 @@
     "garage": "Garage",
     "add_car": "Add a car",
     "add_circuit": "Add a circuit",
+    "create_new": "Create a new",
+    "create_race": "Create race",
+    "race": "Race",
+    "select_car": "Select a car",
 
     "find_something": "Find something to watch next",
     "movie": "Movie",

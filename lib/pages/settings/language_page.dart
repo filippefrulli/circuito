@@ -1,4 +1,4 @@
-import 'package:circuito/home_page.dart';
+import 'package:circuito/pages/home_page.dart';
 import 'package:delayed_display/delayed_display.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
