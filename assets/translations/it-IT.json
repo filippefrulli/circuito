@@ -15,6 +15,8 @@
     "create_race": "Crea gara",
     "race": "Gara",
     "select_car": "Seleziona una macchina",
+    "select_circuit": "Seleziona un circuito",
+    "select_type": "Seleziona un tipo di gara",
 
     "find_something": "Trova qualcosa da guardare",
     "movie": "Film",

@@ -1,5 +1,6 @@
 import 'package:circuito/objects/car.dart';
 import 'package:circuito/objects/circuit.dart';
+import 'package:circuito/objects/race.dart';
 import 'package:circuito/utils/database.dart';
 import 'package:circuito/widgets/page_title.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -18,6 +19,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
 
   Car? selectedCar;
   Circuit? selectedCircuit;
+  RaceType? selectedType;
 
   @override
   void initState() {
@@ -57,6 +59,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
           raceNameInput(colors),
           selectCar(colors),
           selectCircuit(colors),
+          selectType(colors),
           Expanded(
             child: Container(),
           ),
@@ -86,21 +89,14 @@ class _CreateRacePageState extends State<CreateRacePage> {
         const SizedBox(height: 32),
         Text(
           'select_car'.tr(),
-          style: TextStyle(
-            color: colors.primary,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+          style: Theme.of(context).textTheme.displaySmall,
         ),
         const SizedBox(height: 8),
         FutureBuilder<List<Car>>(
           future: DatabaseHelper.instance.getCars(),
           builder: (context, snapshot) {
             if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Text(
-                'No cars available',
-                style: TextStyle(color: colors.error),
-              );
+              return noItems('no_cars'.tr(), colors);
             }
             return Container(
               padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -112,7 +108,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
               child: DropdownButton<Car>(
                 value: selectedCar,
                 isExpanded: true,
-                hint: Text('Select a car'),
+                hint: Text('select_car'.tr()),
                 menuMaxHeight: 300,
                 borderRadius: BorderRadius.circular(8),
                 style: Theme.of(context).textTheme.displaySmall,
@@ -143,22 +139,15 @@ class _CreateRacePageState extends State<CreateRacePage> {
       children: [
         const SizedBox(height: 32),
         Text(
-          'Select Circuit',
-          style: TextStyle(
-            color: colors.primary,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+          'select_circuit'.tr(),
+          style: Theme.of(context).textTheme.displaySmall,
         ),
         const SizedBox(height: 8),
         FutureBuilder<List<Circuit>>(
           future: DatabaseHelper.instance.getCircuits(),
           builder: (context, snapshot) {
             if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Text(
-                'No circuits available',
-                style: TextStyle(color: colors.error),
-              );
+              return noItems('no_circuits'.tr(), colors);
             }
             return Container(
               padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -170,7 +159,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
               child: DropdownButton<Circuit>(
                 value: selectedCircuit,
                 isExpanded: true,
-                hint: Text('Select a circuit'),
+                hint: Text('select_circuit'.tr()),
                 menuMaxHeight: 300,
                 borderRadius: BorderRadius.circular(8),
                 style: Theme.of(context).textTheme.displaySmall,
@@ -197,17 +186,73 @@ class _CreateRacePageState extends State<CreateRacePage> {
     );
   }
 
+  Widget selectType(ColorScheme colors) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 32),
+        Text(
+          'select_type'.tr(),
+          style: Theme.of(context).textTheme.displaySmall,
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          height: 50,
+          decoration: BoxDecoration(
+            border: Border.all(color: colors.outline),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: DropdownButton<RaceType>(
+            value: selectedType,
+            isExpanded: true,
+            hint: Text('select_type'.tr()),
+            menuMaxHeight: 300,
+            borderRadius: BorderRadius.circular(8),
+            style: Theme.of(context).textTheme.displaySmall,
+            icon: Icon(Icons.arrow_drop_down, color: colors.primary),
+            itemHeight: 50,
+            items: RaceType.values.map((RaceType type) {
+              return DropdownMenuItem<RaceType>(
+                value: type,
+                child: Text(type.display),
+              );
+            }).toList(),
+            onChanged: (RaceType? value) {
+              setState(() {
+                selectedType = value;
+              });
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget noItems(String text, ColorScheme colors) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      height: 50,
+      decoration: BoxDecoration(
+        border: Border.all(color: colors.outline),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Center(
+        child: Text(
+          'No cars available',
+          style: Theme.of(context).textTheme.labelSmall,
+        ),
+      ),
+    );
+  }
+
   Widget raceNameInput(ColorScheme colors) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Race Name',
-          style: TextStyle(
-            color: colors.primary,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+          style: Theme.of(context).textTheme.displaySmall,
         ),
         const SizedBox(height: 8),
         Container(
@@ -240,11 +285,29 @@ class _CreateRacePageState extends State<CreateRacePage> {
         borderRadius: BorderRadius.circular(25),
       ),
       child: TextButton(
-        onPressed: () => {
-          if (isFormValid())
-            {
-              //DatabaseHelper.instance.insertRace()
+        onPressed: () async {
+          if (isFormValid()) {
+            try {
+              final race = Race(
+                name: _nameController.text,
+                car: selectedCar!.id!,
+                circuit: selectedCircuit!.id!,
+                type: selectedType!.id,
+                status: 0,
+              );
+
+              await DatabaseHelper.instance.insertRace(race);
+              if (mounted) {
+                Navigator.pop(context);
+              }
+            } catch (e) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error creating race: $e')),
+                );
+              }
             }
+          }
         },
         child: Text(
           "create_race".tr(),
@@ -255,6 +318,6 @@ class _CreateRacePageState extends State<CreateRacePage> {
   }
 
   bool isFormValid() {
-    return _raceName.isNotEmpty && selectedCar != null && selectedCircuit != null;
+    return _raceName.isNotEmpty && selectedCar != null && selectedCircuit != null && selectedType != null;
   }
 }

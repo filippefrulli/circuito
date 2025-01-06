@@ -77,7 +77,7 @@ class DatabaseHelper {
         $raceName TEXT NOT NULL,
         $raceCarId INTEGER NOT NULL,
         $raceCircuitId INTEGER NOT NULL,
-        $raceType TEXT NOT NULL,
+        $raceType INTEGER NOT NULL,
         $raceStatus INTEGER DEFAULT 0,
         FOREIGN KEY ($raceCarId) REFERENCES $carsTable ($carId)
           ON DELETE CASCADE,

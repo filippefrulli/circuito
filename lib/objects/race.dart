@@ -3,7 +3,7 @@ class Race {
   final String name;
   final int car;
   final int circuit;
-  final String type;
+  final int type;
   final int status;
 
   Race({
@@ -24,5 +24,29 @@ class Race {
       'type': type,
       'status': status,
     };
+  }
+}
+
+enum RaceType {
+  timed(1, 'Time Trial'),
+  laps(2, 'Lap Race');
+
+  final int id;
+  final String display;
+
+  const RaceType(this.id, this.display);
+
+  static RaceType fromId(int id) {
+    return RaceType.values.firstWhere(
+      (type) => type.id == id,
+      orElse: () => throw ArgumentError('Invalid race type id: $id'),
+    );
+  }
+
+  static RaceType fromDisplay(String display) {
+    return RaceType.values.firstWhere(
+      (type) => type.display == display,
+      orElse: () => throw ArgumentError('Invalid race type display: $display'),
+    );
   }
 }
