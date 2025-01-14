@@ -144,4 +144,19 @@ class DatabaseHelper {
       );
     });
   }
+
+  Future<Race> getRaceById(int id) async {
+    Database? db = await database;
+    final List<Map<String, dynamic>> maps = await db!.query(
+      racesTable,
+      where: '$raceId = ?',
+      whereArgs: [id],
+    );
+
+    if (maps.isEmpty) {
+      throw Exception('Race not found');
+    }
+
+    return Race.fromMap(maps.first);
+  }
 }

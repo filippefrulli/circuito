@@ -1,6 +1,8 @@
 import 'package:circuito/objects/car.dart';
 import 'package:circuito/objects/circuit.dart';
 import 'package:circuito/objects/race.dart';
+import 'package:circuito/pages/races/edit_lap_race_page.dart';
+import 'package:circuito/pages/races/edit_timed_race_page.dart';
 import 'package:circuito/utils/database.dart';
 import 'package:circuito/widgets/page_title.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -296,9 +298,23 @@ class _CreateRacePageState extends State<CreateRacePage> {
                 status: 0,
               );
 
-              await DatabaseHelper.instance.insertRace(race);
+              final id = await DatabaseHelper.instance.insertRace(race);
               if (mounted) {
-                Navigator.pop(context);
+                if (selectedType == RaceType.timed) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditTimedRacePage(id: id),
+                    ),
+                  );
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditLapsRacePage(id: id),
+                    ),
+                  );
+                }
               }
             } catch (e) {
               if (mounted) {

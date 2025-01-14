@@ -17,6 +17,8 @@
     "select_car": "Select a car",
     "select_circuit": "Select a circuit",
     "select_type": "Select a race type",
+    "timed_race": "Timed race:",
+    "number_of_laps": "Select the number of laps",
 
     "find_something": "Find something to watch next",
     "movie": "Movie",

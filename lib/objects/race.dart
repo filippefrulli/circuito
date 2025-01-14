@@ -25,6 +25,18 @@ class Race {
       'status': status,
     };
   }
+
+  factory Race.fromMap(Map<String, dynamic> map) {
+    Race race = Race(
+      id: map['id'],
+      name: map['name'],
+      car: map['car'],
+      circuit: map['circuit'],
+      type: map['type'],
+      status: map['status'],
+    );
+    return race;
+  }
 }
 
 enum RaceType {

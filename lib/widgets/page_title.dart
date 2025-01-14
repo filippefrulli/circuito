@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:delayed_display/delayed_display.dart';
 import 'package:flutter/material.dart';
 
@@ -19,9 +20,14 @@ class PageTitleWidget extends StatelessWidget {
         const SizedBox(height: 12),
         DelayedDisplay(
           fadingDuration: const Duration(milliseconds: 1000),
-          child: Text(
-            title,
-            style: Theme.of(context).textTheme.displayLarge,
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width - 64,
+            child: AutoSizeText(
+              title,
+              maxLines: 1,
+              minFontSize: 12,
+              style: Theme.of(context).textTheme.displayLarge,
+            ),
           ),
         ),
       ],
