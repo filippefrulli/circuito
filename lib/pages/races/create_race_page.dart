@@ -2,7 +2,7 @@ import 'package:circuito/objects/car.dart';
 import 'package:circuito/objects/circuit.dart';
 import 'package:circuito/objects/race.dart';
 import 'package:circuito/pages/races/edit_lap_race_page.dart';
-import 'package:circuito/pages/races/edit_timed_race_page.dart';
+import 'package:circuito/pages/races/timed/edit_timed_race_page.dart';
 import 'package:circuito/utils/database.dart';
 import 'package:circuito/widgets/page_title.dart';
 import 'package:easy_localization/easy_localization.dart';

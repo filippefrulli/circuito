@@ -60,10 +60,7 @@ class _HomePageState extends State<HomePage> {
       children: [
         PageTitleWidget(
           intro: 'welcome'.tr(),
-          title: 'Pippo',
-        ),
-        Expanded(
-          child: Container(),
+          title: 'Lorenzo',
         ),
         settingsButton(colors),
       ],
@@ -72,6 +69,8 @@ class _HomePageState extends State<HomePage> {
 
   Widget settingsButton(ColorScheme colors) {
     return Container(
+      width: 46,
+      height: 46,
       decoration: BoxDecoration(
         color: colors.primary,
         borderRadius: BorderRadius.circular(25),

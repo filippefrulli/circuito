@@ -1,6 +1,7 @@
 import 'dart:io' show Directory;
 import 'package:circuito/objects/car.dart';
 import 'package:circuito/objects/circuit.dart';
+import 'package:circuito/objects/lap_result.dart';
 import 'package:circuito/objects/race.dart';
 import 'package:path/path.dart' show join;
 import 'package:sqflite/sqflite.dart';
@@ -13,6 +14,7 @@ class DatabaseHelper {
   static const carsTable = 'cars';
   static const circuitsTable = 'circuits';
   static const racesTable = 'races';
+  static const lapResultsTable = 'lap_results';
 
   static const carId = 'id';
   static const carName = 'name';
@@ -29,6 +31,13 @@ class DatabaseHelper {
   static const raceCircuitId = 'circuit';
   static const raceType = 'type';
   static const raceStatus = 'status';
+
+  static const lapResultId = 'id';
+  static const lapResultRaceId = 'race_id';
+  static const lapResultLapNumber = 'lap_number';
+  static const lapResultCompletionTime = 'completion_time';
+  static const lapResultTimeDifference = 'time_difference';
+  static const lapResultTimestamp = 'timestamp';
 
   DatabaseHelper._privateConstructor();
   static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
@@ -85,6 +94,19 @@ class DatabaseHelper {
           ON DELETE CASCADE
       )
     ''');
+
+    await db.execute('''
+      CREATE TABLE $lapResultsTable (
+        $lapResultId INTEGER PRIMARY KEY AUTOINCREMENT,
+        $lapResultRaceId INTEGER NOT NULL,
+        $lapResultLapNumber INTEGER NOT NULL,
+        $lapResultCompletionTime INTEGER NOT NULL,
+        $lapResultTimeDifference INTEGER NOT NULL,
+        $lapResultTimestamp TEXT NOT NULL,
+        FOREIGN KEY ($lapResultRaceId) REFERENCES $racesTable ($raceId)
+          ON DELETE CASCADE
+      )
+    ''');
   }
 
   Future<int> insertCar(Car car) async {
@@ -100,6 +122,11 @@ class DatabaseHelper {
   Future<int> insertRace(Race race) async {
     Database? db = await database;
     return await db!.insert(racesTable, race.toMap());
+  }
+
+  Future<int> insertLapResult(LapResult lapResult) async {
+    Database? db = await database;
+    return await db!.insert(lapResultsTable, lapResult.toMap());
   }
 
   Future<List<Car>> getCars() async {
@@ -158,5 +185,19 @@ class DatabaseHelper {
     }
 
     return Race.fromMap(maps.first);
+  }
+
+  Future<List<LapResult>> getLapResultsByRaceId(int raceId) async {
+    Database? db = await database;
+    final List<Map<String, dynamic>> maps = await db!.query(
+      lapResultsTable,
+      where: '$lapResultRaceId = ?',
+      whereArgs: [raceId],
+      orderBy: '$lapResultLapNumber ASC',
+    );
+
+    return List.generate(maps.length, (i) {
+      return LapResult.fromMap(maps[i]);
+    });
   }
 }

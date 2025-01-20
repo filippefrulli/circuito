@@ -1,4 +1,5 @@
 import 'package:circuito/objects/race.dart';
+import 'package:circuito/pages/races/timed/timed_race_page.dart';
 import 'package:circuito/utils/database.dart';
 import 'package:circuito/widgets/page_title.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -81,8 +82,16 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
           ),
           const SizedBox(height: 16),
           numberOfLaps(colors),
-          const SizedBox(height: 32),
+          const SizedBox(height: 64),
+          Text(
+            'lap_time'.tr(),
+            style: Theme.of(context).textTheme.displayMedium,
+          ),
+          const SizedBox(height: 16),
           timeInputSection(colors),
+          Expanded(child: Container()),
+          startRaceButton(colors, _laps, _minutes, _seconds, _milliseconds),
+          const SizedBox(height: 32),
         ],
       ),
     );
@@ -151,7 +160,7 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
           itemCount: 1,
           itemHeight: 54,
           itemWidth: 54,
-          axis: Axis.horizontal,
+          axis: Axis.vertical,
           onChanged: onChanged,
           textStyle: TextStyle(color: colors.onSurface),
           selectedTextStyle: TextStyle(
@@ -168,6 +177,31 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget startRaceButton(ColorScheme colors, int laps, int minutes, int seconds, int milliseconds) {
+    return Container(
+      height: 60,
+      width: MediaQuery.of(context).size.width - 96,
+      decoration: BoxDecoration(
+        color: colors.primary,
+        borderRadius: BorderRadius.circular(25),
+      ),
+      child: TextButton(
+        onPressed: () => {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => TimedRacePage(
+                  laps: laps, minutes: minutes, seconds: seconds, milliseconds: milliseconds, raceId: widget.id),
+            ),
+          ),
+        },
+        child: Text(
+          "go_to_race".tr(),
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+      ),
     );
   }
 }

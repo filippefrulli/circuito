@@ -28,6 +28,7 @@ class _LanguagePageState extends State<LanguagePage> {
   @override
   initState() {
     super.initState();
+    checkFirstSeen();
   }
 
   @override
@@ -149,6 +150,7 @@ class _LanguagePageState extends State<LanguagePage> {
               if (mounted && seen) {
                 Navigator.of(context).pop();
               } else if (mounted && !seen) {
+                prefs.setBool('skip_intro', true);
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
                     builder: (context) => const HomePage(),
@@ -166,6 +168,20 @@ class _LanguagePageState extends State<LanguagePage> {
     } else {
       return Container(
         height: 70,
+      );
+    }
+  }
+
+  checkFirstSeen() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool seen = (prefs.getBool('skip_intro') ?? false);
+
+    print('Seen ' + seen.toString());
+    if (seen && mounted) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => const HomePage(),
+        ),
       );
     }
   }

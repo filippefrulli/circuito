@@ -21,10 +21,11 @@ class PageTitleWidget extends StatelessWidget {
         DelayedDisplay(
           fadingDuration: const Duration(milliseconds: 1000),
           child: SizedBox(
-            width: MediaQuery.of(context).size.width - 64,
+            width: MediaQuery.of(context).size.width - 110,
             child: AutoSizeText(
               title,
-              maxLines: 1,
+              wrapWords: false,
+              maxLines: 2,
               minFontSize: 12,
               style: Theme.of(context).textTheme.displayLarge,
             ),
