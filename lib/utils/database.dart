@@ -31,6 +31,7 @@ class DatabaseHelper {
   static const raceCircuitId = 'circuit';
   static const raceType = 'type';
   static const raceStatus = 'status';
+  static const raceTimestamp = 'timestamp';
 
   static const lapResultId = 'id';
   static const lapResultRaceId = 'race_id';
@@ -88,6 +89,7 @@ class DatabaseHelper {
         $raceCircuitId INTEGER NOT NULL,
         $raceType INTEGER NOT NULL,
         $raceStatus INTEGER DEFAULT 0,
+        $raceTimestamp TEXT NOT NULL,
         FOREIGN KEY ($raceCarId) REFERENCES $carsTable ($carId)
           ON DELETE CASCADE,
         FOREIGN KEY ($raceCircuitId) REFERENCES $circuitsTable ($circuitId)
@@ -168,6 +170,7 @@ class DatabaseHelper {
         circuit: maps[i][raceCircuitId],
         type: maps[i][raceType],
         status: maps[i][raceStatus],
+        timestamp: maps[i][raceTimestamp],
       );
     });
   }

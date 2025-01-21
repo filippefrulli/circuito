@@ -1,3 +1,4 @@
+import 'package:circuito/pages/completed_races_page.dart';
 import 'package:circuito/pages/races/create_race_page.dart';
 import 'package:circuito/pages/settings/settings_page.dart';
 import 'package:circuito/widgets/page_title.dart';
@@ -37,12 +38,10 @@ class _HomePageState extends State<HomePage> {
         children: [
           const SizedBox(height: 64),
           topBar(colors),
-          Expanded(
-            child: Container(),
-          ),
+          const SizedBox(height: 64),
           middleButtons(colors),
           const SizedBox(height: 24),
-          racesButton(colors),
+          completedRacesButton(colors),
           Expanded(
             child: Container(),
           ),
@@ -149,10 +148,10 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget racesButton(ColorScheme colors) {
+  Widget completedRacesButton(ColorScheme colors) {
     return Container(
-      padding: const EdgeInsets.all(4),
-      height: 260,
+      padding: const EdgeInsets.all(16),
+      height: 70,
       width: double.infinity,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(25),
@@ -161,14 +160,30 @@ class _HomePageState extends State<HomePage> {
           width: 2,
         ),
       ),
-      child: Align(
-        alignment: Alignment.topLeft,
-        child: TextButton(
-          onPressed: () => {},
-          child: Text(
-            'my_races'.tr(),
-            style: Theme.of(context).textTheme.displayMedium,
-          ),
+      child: TextButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const CompletedRacesPage(),
+            ),
+          );
+        },
+        child: Row(
+          children: [
+            Text(
+              'my_races'.tr(),
+              style: Theme.of(context).textTheme.displayMedium,
+            ),
+            Expanded(
+              child: Container(),
+            ),
+            Icon(
+              Icons.chevron_right,
+              color: colors.primary,
+              size: 32,
+            ),
+          ],
         ),
       ),
     );

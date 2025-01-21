@@ -24,7 +24,12 @@
     "ready": "Ready",
     "lap_completed": "Lap completed",
     "start_race": "Start race",
-
+    "end_race": "End race",
+    "race_results": "Results of race:",
+    "close": "Chiudi",
+    "in_progress": "In progress",
+    "completed": "Completed",
+    "completed_races": "Completed races",
 
     "a": "a"
 }

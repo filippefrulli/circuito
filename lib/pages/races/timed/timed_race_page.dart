@@ -31,9 +31,9 @@ class _TimedRacePageState extends State<TimedRacePage> {
   late int _minutes = widget.minutes;
   late int _seconds = widget.seconds;
   late int _milliseconds = widget.milliseconds;
-  int _currentLap = 0;
+  int _currentLap = 1;
   bool started = false;
-  bool showEnd = false;
+  bool isEnded = false;
 
   Timer? _timer;
   late int _initialTimeInMs;
@@ -71,7 +71,7 @@ class _TimedRacePageState extends State<TimedRacePage> {
           const SizedBox(height: 64),
           timerSection(colors),
           Expanded(child: Container()),
-          completeLap(colors),
+          lapCompletedButton(colors),
           const SizedBox(height: 32),
           startRaceButton(colors),
           endRaceButton(colors),
@@ -87,7 +87,11 @@ class _TimedRacePageState extends State<TimedRacePage> {
       children: [
         PageTitleWidget(
           intro: 'timed_race'.tr(),
-          title: 'ready'.tr(),
+          title: isEnded
+              ? 'completed'.tr()
+              : started
+                  ? 'in_progress'.tr()
+                  : 'ready'.tr(),
         ),
       ],
     );
@@ -145,8 +149,8 @@ class _TimedRacePageState extends State<TimedRacePage> {
     );
   }
 
-  completeLap(ColorScheme colors) {
-    return started
+  lapCompletedButton(ColorScheme colors) {
+    return started && !isEnded
         ? Container(
             height: 60,
             width: MediaQuery.of(context).size.width - 96,
@@ -168,7 +172,7 @@ class _TimedRacePageState extends State<TimedRacePage> {
   }
 
   startRaceButton(ColorScheme colors) {
-    return showEnd
+    return started
         ? Container()
         : Container(
             height: 60,
@@ -197,7 +201,7 @@ class _TimedRacePageState extends State<TimedRacePage> {
   }
 
   endRaceButton(ColorScheme colors) {
-    return showEnd
+    return isEnded
         ? Container(
             height: 60,
             width: MediaQuery.of(context).size.width - 96,
@@ -283,8 +287,7 @@ class _TimedRacePageState extends State<TimedRacePage> {
         _updateTimeDisplay();
         _currentLap++;
       } else {
-        started = false;
-        showEnd = true;
+        isEnded = true;
         _stopTimer();
       }
     });

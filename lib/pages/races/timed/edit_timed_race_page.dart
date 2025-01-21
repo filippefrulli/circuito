@@ -99,7 +99,6 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
 
   Widget topBar(ColorScheme colors, Race race) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         PageTitleWidget(
           intro: 'timed_race'.tr(),
@@ -114,7 +113,7 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
       height: 54,
       width: 110,
       decoration: BoxDecoration(
-        border: Border.all(color: colors.outline),
+        border: Border.all(color: colors.outline, width: 2),
         borderRadius: BorderRadius.circular(8),
       ),
       child: NumberPicker(
@@ -133,7 +132,7 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
       decoration: BoxDecoration(
-        border: Border.all(color: colors.outline),
+        border: Border.all(color: colors.outline, width: 2),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(

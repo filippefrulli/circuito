@@ -1,5 +1,6 @@
 import 'package:circuito/objects/lap_result.dart';
 import 'package:circuito/objects/race.dart';
+import 'package:circuito/pages/home_page.dart';
 import 'package:circuito/utils/database.dart';
 import 'package:circuito/widgets/page_title.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -32,72 +33,119 @@ class _TimedRaceResultsPageState extends State<TimedRaceResultsPage> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: Column(
-          children: [
-            const SizedBox(height: 64),
-            FutureBuilder<Race>(
-              future: _raceFuture,
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) return const SizedBox();
-                return PageTitleWidget(
-                  intro: 'race_results'.tr(),
-                  title: snapshot.data!.name,
-                );
-              },
-            ),
-            const SizedBox(height: 32),
-            Expanded(
-              child: FutureBuilder<List<LapResult>>(
-                future: _lapResultsFuture,
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+      body: body(colors),
+    );
+  }
 
-                  return ListView.builder(
-                    itemCount: snapshot.data!.length,
-                    itemBuilder: (context, index) {
-                      final lap = snapshot.data![index];
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 16),
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: colors.outline),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Lap ${lap.lapNumber}',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  '${_formatTime(lap.completionTime)}',
-                                  style: Theme.of(context).textTheme.bodyLarge,
-                                ),
-                                Text(
-                                  _formatTimeDifference(lap.timeDifference),
-                                  style: TextStyle(
-                                    color: lap.timeDifference > 0 ? colors.error : colors.primary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
+  Widget body(ColorScheme colors) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Column(
+        children: [
+          const SizedBox(height: 64),
+          topBar(colors),
+          const SizedBox(height: 64),
+          lapResultList(colors),
+          const SizedBox(height: 32),
+          backToHomeButton(colors),
+          const SizedBox(height: 32),
+        ],
+      ),
+    );
+  }
+
+  Widget topBar(ColorScheme colors) {
+    return FutureBuilder<Race>(
+      future: _raceFuture,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return const SizedBox();
+        return Row(
+          children: [
+            PageTitleWidget(
+              intro: 'race_results'.tr(),
+              title: snapshot.data!.name,
             ),
           ],
+        );
+      },
+    );
+  }
+
+  Widget lapResultList(ColorScheme colors) {
+    return Expanded(
+      child: FutureBuilder<List<LapResult>>(
+        future: _lapResultsFuture,
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          return ListView.builder(
+            padding: EdgeInsets.zero,
+            itemCount: snapshot.data!.length,
+            itemBuilder: (context, index) {
+              final lap = snapshot.data![index];
+              return Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: colors.outline, width: 2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Lap ${lap.lapNumber}',
+                      style: Theme.of(context).textTheme.displayMedium,
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          _formatTime(lap.completionTime),
+                          style: Theme.of(context).textTheme.displayMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _formatTimeDifference(lap.timeDifference),
+                          style: TextStyle(
+                            color: lap.timeDifference > 0 ? colors.error : Colors.green[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  backToHomeButton(ColorScheme colors) {
+    return Container(
+      height: 60,
+      width: MediaQuery.of(context).size.width - 96,
+      decoration: BoxDecoration(
+        color: colors.primary,
+        borderRadius: BorderRadius.circular(25),
+      ),
+      child: TextButton(
+        onPressed: () {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const HomePage(),
+            ),
+          );
+        },
+        child: Text(
+          'close'.tr(),
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: colors.onPrimary,
+              ),
         ),
       ),
     );
