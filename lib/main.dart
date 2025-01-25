@@ -73,7 +73,7 @@ class MyApp extends StatelessWidget {
           textTheme: const TextTheme(
             // BLACK COLOR
             displayLarge: TextStyle(
-              fontSize: 50.0,
+              fontSize: 46.0,
               color: Colors.black,
               fontWeight: FontWeight.w800,
               letterSpacing: 1.2,

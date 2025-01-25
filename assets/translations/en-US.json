@@ -30,6 +30,22 @@
     "in_progress": "In progress",
     "completed": "Completed",
     "completed_races": "Completed races",
+    "no_completed_races": "You haven't completed any races yet",
+    "edit_language": "Change language",
+    "rate_app": "Rate app",
+    "share": "Share app",
+    "about": "About",
+    "privacy_policy": "Privacy Policy",
+    "select": "Select",
+    "settings": "Settings",
+    "Select_language": "Select language",
+    "no_cars": "No cars available",
+    "race_name": "Race name",
+    "enter_race_name": "Enter race name",
+    "time_trial": "Time trial",
+    "lap_race": "Lap race",
+    "lap": "Lap",
+    "your": "Your",
 
     "a": "a"
 }

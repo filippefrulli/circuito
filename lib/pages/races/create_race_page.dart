@@ -84,6 +84,36 @@ class _CreateRacePageState extends State<CreateRacePage> {
     );
   }
 
+  Widget raceNameInput(ColorScheme colors) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'race_name'.tr(),
+          style: Theme.of(context).textTheme.displaySmall,
+        ),
+        const SizedBox(height: 8),
+        Container(
+          height: 50,
+          decoration: BoxDecoration(
+            border: Border.all(color: colors.outline),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: TextField(
+            controller: _nameController,
+            style: Theme.of(context).textTheme.displaySmall,
+            decoration: InputDecoration(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+              border: InputBorder.none,
+              hintText: 'enter_race_name'.tr(),
+              hintStyle: Theme.of(context).textTheme.labelSmall,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget selectCar(ColorScheme colors) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -217,7 +247,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
             items: RaceType.values.map((RaceType type) {
               return DropdownMenuItem<RaceType>(
                 value: type,
-                child: Text(type.display),
+                child: Text(type.display.tr()),
               );
             }).toList(),
             onChanged: (RaceType? value) {
@@ -241,40 +271,10 @@ class _CreateRacePageState extends State<CreateRacePage> {
       ),
       child: Center(
         child: Text(
-          'No cars available',
+          'no_cars'.tr(),
           style: Theme.of(context).textTheme.labelSmall,
         ),
       ),
-    );
-  }
-
-  Widget raceNameInput(ColorScheme colors) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Race Name',
-          style: Theme.of(context).textTheme.displaySmall,
-        ),
-        const SizedBox(height: 8),
-        Container(
-          height: 50,
-          decoration: BoxDecoration(
-            border: Border.all(color: colors.outline),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: TextField(
-            controller: _nameController,
-            style: Theme.of(context).textTheme.displaySmall,
-            decoration: InputDecoration(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-              border: InputBorder.none,
-              hintText: 'Enter race name',
-              hintStyle: TextStyle(color: colors.outline),
-            ),
-          ),
-        ),
-      ],
     );
   }
 

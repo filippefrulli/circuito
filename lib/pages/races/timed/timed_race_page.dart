@@ -105,7 +105,7 @@ class _TimedRacePageState extends State<TimedRacePage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            'LAP $_currentLap / ${widget.laps}',
+            '${'lap'.tr()} $_currentLap / ${widget.laps}',
             style: Theme.of(context).textTheme.displayMedium?.copyWith(
                   color: colors.primary,
                   fontWeight: FontWeight.bold,

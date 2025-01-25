@@ -30,6 +30,23 @@
     "in_progress": "In corso",
     "completed": "Completata",
     "completed_races": "Gare completate",
+    "no_completed_races": "Non hai ancora completato nessuna gara",
+    "edit_language": "Cambia lingua",
+    "rate_app": "Valuta l'app",
+    "share": "Condividi app",
+    "about": "Informazioni",
+    "privacy_policy": "Privacy Policy",
+    "select": "Seleziona",
+    "settings": "Impostazioni",
+    "Select_language": "Seleziona lingua",
+    "no_cars": "Nessuna macchina disponibile",
+    "race_name": "Nome della gara",
+    "enter_race_name": "Inserisci il nome della gara",
+    "time_trial": "Gara a tempo",
+    "lap_race": "Gara a giri",
+    "go_to_race": "Vai alla gara",
+    "lap": "Giro",
+    "your": "Le tue",
 
     "a": "una"
 }

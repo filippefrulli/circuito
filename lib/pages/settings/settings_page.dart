@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:circuito/pages/settings/language_page.dart';
 import 'package:circuito/pages/settings/privacy_policy_page.dart';
 import 'package:circuito/widgets/divider.dart';
+import 'package:circuito/widgets/page_title.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
@@ -22,35 +23,25 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return Scaffold(
-      floatingActionButtonLocation: FloatingActionButtonLocation.miniEndDocked,
-      floatingActionButton: FloatingActionButton(
-        mini: true,
-        onPressed: () {
-          Navigator.pop(context);
-        },
-        child: Icon(
-          Icons.chevron_left,
-          color: Colors.grey[900],
-          size: 32,
-        ),
-      ),
-      backgroundColor: const Color.fromRGBO(11, 14, 23, 1),
-      body: pageBody(),
+      body: body(colors),
     );
   }
 
-  Widget pageBody() {
+  Widget body(ColorScheme colors) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: SingleChildScrollView(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.max,
           children: [
+            const SizedBox(height: 64),
+            topBar(colors),
+            const SizedBox(height: 32),
             TextButton(
-              child: _row(("edit_language".tr()), Icons.language_outlined),
+              child: rowWidget(("edit_language".tr()), Icons.language_outlined),
               onPressed: () {
                 Navigator.push(
                   context,
@@ -62,7 +53,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             const DividerWidget(padding: 0, height: 32),
             TextButton(
-              child: _row(("rate_app".tr()), Icons.star),
+              child: rowWidget(("rate_app".tr()), Icons.star),
               onPressed: () async {
                 if (Platform.isAndroid) {
                   final Uri url =
@@ -80,7 +71,7 @@ class _SettingsPageState extends State<SettingsPage> {
               },
             ),
             TextButton(
-              child: _row(("share".tr()), Icons.share),
+              child: rowWidget(("share".tr()), Icons.share),
               onPressed: () {
                 if (Platform.isAndroid) {
                   Share.share(
@@ -93,31 +84,14 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             const DividerWidget(padding: 0, height: 32),
             TextButton(
-              child: _row(("about".tr()), Icons.info),
+              child: rowWidget(("about".tr()), Icons.info),
               onPressed: () {
                 showAboutDialog(
                   context: context,
-                  applicationName: 'Watch next',
                   children: [
-                    Image.asset(
-                      'assets/TMDb.png',
-                      width: 40.0,
-                      height: 40.0,
-                    ),
-                    const SizedBox(height: 4),
                     Text(
-                      'Watch next uses TMDb but is not endorsed or certified by TMDb.',
-                      style: Theme.of(context).textTheme.labelSmall,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Watch provider information is provided by JustWatch.',
-                      style: Theme.of(context).textTheme.labelSmall,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'We do not claim ownership of any of the images or data provided.',
-                      style: Theme.of(context).textTheme.labelSmall,
+                      'Circuito',
+                      style: Theme.of(context).textTheme.displayMedium,
                     ),
                     const DividerWidget(padding: 0, height: 16),
                   ],
@@ -126,7 +100,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             const DividerWidget(padding: 0, height: 16),
             TextButton(
-              child: _row(("privacy_policy".tr()), Icons.receipt),
+              child: rowWidget(("privacy_policy".tr()), Icons.receipt),
               onPressed: () {
                 Navigator.push(
                   context,
@@ -143,18 +117,29 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _row(String text, IconData icon) {
+  Widget topBar(ColorScheme colors) {
+    return Row(
+      children: [
+        PageTitleWidget(
+          intro: '',
+          title: 'settings'.tr(),
+        ),
+      ],
+    );
+  }
+
+  Widget rowWidget(String text, IconData icon) {
     return Container(
       decoration: const BoxDecoration(
         borderRadius: BorderRadius.all(Radius.circular(8.0)),
       ),
       child: Row(
         children: <Widget>[
-          Icon(icon, color: Colors.orange),
+          Icon(icon, color: Colors.black),
           const SizedBox(width: 16),
           Text(
             text,
-            style: Theme.of(context).textTheme.displaySmall,
+            style: Theme.of(context).textTheme.displayMedium,
             maxLines: 1,
           ),
         ],

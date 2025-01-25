@@ -44,8 +44,8 @@ class Race {
 }
 
 enum RaceType {
-  timed(1, 'Time Trial'),
-  laps(2, 'Lap Race');
+  timed(1, 'time_trial'),
+  laps(2, 'lap_race');
 
   final int id;
   final String display;

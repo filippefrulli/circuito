@@ -1,6 +1,8 @@
+import 'package:circuito/pages/clock_page.dart';
 import 'package:circuito/pages/completed_races_page.dart';
 import 'package:circuito/pages/races/create_race_page.dart';
 import 'package:circuito/pages/settings/settings_page.dart';
+import 'package:circuito/pages/third_page.dart';
 import 'package:circuito/widgets/page_title.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +15,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  int _selectedIndex = 1;
+
   @override
   void initState() {
     super.initState();
@@ -23,6 +27,76 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Scaffold(
+      body: GestureDetector(
+        onHorizontalDragEnd: (DragEndDetails details) {
+          if (details.primaryVelocity! > 0) {
+            // Swiped right
+            setState(() {
+              if (_selectedIndex > 0) {
+                _selectedIndex--;
+              }
+            });
+          } else if (details.primaryVelocity! < 0) {
+            // Swiped left
+            setState(() {
+              if (_selectedIndex < 2) {
+                _selectedIndex++;
+              }
+            });
+          }
+        },
+        child: IndexedStack(
+          index: _selectedIndex,
+          children: const [
+            ClockPage(),
+            HomeContent(),
+            ThirdPage(),
+          ],
+        ),
+      ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          onTap: (index) => setState(() => _selectedIndex = index),
+          backgroundColor: Colors.white,
+          elevation: 0,
+          selectedItemColor: colors.primary,
+          unselectedItemColor: colors.outline,
+          showSelectedLabels: false,
+          showUnselectedLabels: false,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.timer),
+              label: '',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: '',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.directions_car),
+              label: '',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class HomeContent extends StatefulWidget {
+  const HomeContent({super.key});
+
+  @override
+  State<HomeContent> createState() => _HomeContentState();
+}
+
+class _HomeContentState extends State<HomeContent> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;

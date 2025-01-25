@@ -1,4 +1,5 @@
 import 'package:circuito/pages/home_page.dart';
+import 'package:circuito/widgets/page_title.dart';
 import 'package:delayed_display/delayed_display.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -28,28 +29,22 @@ class _LanguagePageState extends State<LanguagePage> {
   @override
   initState() {
     super.initState();
-    checkFirstSeen();
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return Scaffold(
-      body: body(),
+      body: body(colors),
     );
   }
 
-  Widget body() {
+  Widget body(ColorScheme colors) {
     return Column(
       children: [
-        const SizedBox(height: 48),
-        Text(
-          'Select your language',
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.displayLarge,
-        ),
-        Expanded(
-          child: Container(),
-        ),
+        const SizedBox(height: 64),
+        topBar(colors),
+        const SizedBox(height: 64),
         languageList(),
         Expanded(
           child: Container(),
@@ -59,6 +54,17 @@ class _LanguagePageState extends State<LanguagePage> {
         ),
         nextButton(),
         const SizedBox(height: 32),
+      ],
+    );
+  }
+
+  Widget topBar(ColorScheme colors) {
+    return Row(
+      children: [
+        PageTitleWidget(
+          intro: '',
+          title: 'Select_language'.tr(),
+        ),
       ],
     );
   }
@@ -136,8 +142,8 @@ class _LanguagePageState extends State<LanguagePage> {
       return DelayedDisplay(
         delay: const Duration(milliseconds: 100),
         child: Container(
-          width: 200,
-          height: 70,
+          width: MediaQuery.of(context).size.width - 96,
+          height: 60,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           decoration: BoxDecoration(
             color: Colors.black,
@@ -168,20 +174,6 @@ class _LanguagePageState extends State<LanguagePage> {
     } else {
       return Container(
         height: 70,
-      );
-    }
-  }
-
-  checkFirstSeen() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool seen = (prefs.getBool('skip_intro') ?? false);
-
-    print('Seen ' + seen.toString());
-    if (seen && mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => const HomePage(),
-        ),
       );
     }
   }

@@ -1,50 +1,8 @@
-const List<String> streamingServicesLogos = [
-  'assets/streaming_services/netflix.png',
-  'assets/streaming_services/prime_video.png',
-  'assets/streaming_services/apple_tv.png',
-  'assets/streaming_services/disney+.png',
-  'assets/streaming_services/hbo_max.png',
-  'assets/streaming_services/hulu.png',
-  'assets/streaming_services/paramount+.png',
-  'assets/streaming_services/peacock.png',
-];
-
-const List<String> streamingServicesLogosIos = [
-  'assets/streaming_services/netflix.png',
-  'assets/streaming_services/prime_video.png',
-  'assets/streaming_services/apple_tv.png',
-  'assets/streaming_services/hbo_max.png',
-  'assets/streaming_services/hulu.png',
-  'assets/streaming_services/paramount+.png',
-  'assets/streaming_services/peacock.png',
-];
-
-const providersMap = {
-  8: 'assets/streaming_services/netflix.png',
-  9: 'assets/streaming_services/prime_video.png',
-  350: 'assets/streaming_services/apple_tv.png',
-  337: 'assets/streaming_services/disney+.png',
-  384: 'assets/streaming_services/hbo_max.png',
-  15: 'assets/streaming_services/hulu.png',
-  531: 'assets/streaming_services/paramount+.png',
-  530: 'assets/streaming_services/peacock.png',
-};
-
-const providersMapIos = {
-  8: 'assets/streaming_services/netflix.png',
-  9: 'assets/streaming_services/prime_video.png',
-  350: 'assets/streaming_services/apple_tv.png',
-  384: 'assets/streaming_services/hbo_max.png',
-  15: 'assets/streaming_services/hulu.png',
-  531: 'assets/streaming_services/paramount+.png',
-  530: 'assets/streaming_services/peacock.png',
-};
-
 const String privacyPolicy = '''Privacy Policy
 
 Effective Date: 01.06.2023
 
-Our Privacy Policy explains how we collect, use, disclose, and safeguard your personal information when you use our mobile application Watch Next. Please read this Privacy Policy carefully to understand our practices regarding your personal information and how we will treat it. By using our mobile application, you consent to the practices described in this Privacy Policy.
+Our Privacy Policy explains how we collect, use, disclose, and safeguard your personal information when you use our mobile application Circuito. Please read this Privacy Policy carefully to understand our practices regarding your personal information and how we will treat it. By using our mobile application, you consent to the practices described in this Privacy Policy.
 
 Information We Collect:
 We do not collect any personal information or data when you use our mobile application. We are committed to maintaining the privacy of our users and ensuring that no personally identifiable information is collected, stored, or shared.
