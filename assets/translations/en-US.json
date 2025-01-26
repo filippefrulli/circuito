@@ -46,6 +46,12 @@
     "lap_race": "Lap race",
     "lap": "Lap",
     "your": "Your",
+    "done": "Done",
+    "sections": "Sections",
+    "section": "Section",   
+    "example_section": "Example: Day 1 - Round 1",
+    "timed_challenges": "Timed challenges",
+    "add_sections": "Add sections",
 
     "a": "a"
 }

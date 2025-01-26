@@ -3,6 +3,8 @@ import 'package:circuito/objects/car.dart';
 import 'package:circuito/objects/circuit.dart';
 import 'package:circuito/objects/lap_result.dart';
 import 'package:circuito/objects/race.dart';
+import 'package:circuito/objects/timed_challenge.dart';
+import 'package:circuito/objects/timed_race_section.dart';
 import 'package:path/path.dart' show join;
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart' show getApplicationDocumentsDirectory;
@@ -15,6 +17,8 @@ class DatabaseHelper {
   static const circuitsTable = 'circuits';
   static const racesTable = 'races';
   static const lapResultsTable = 'lap_results';
+  static const timedChallengeTable = 'timed_challenges';
+  static const timedRaceSectionsTable = 'timed_race_sections';
 
   static const carId = 'id';
   static const carName = 'name';
@@ -23,7 +27,6 @@ class DatabaseHelper {
 
   static const circuitId = 'id';
   static const circuitName = 'name';
-  static const circuitCountry = 'country';
 
   static const raceId = 'id';
   static const raceName = 'name';
@@ -39,6 +42,15 @@ class DatabaseHelper {
   static const lapResultCompletionTime = 'completion_time';
   static const lapResultTimeDifference = 'time_difference';
   static const lapResultTimestamp = 'timestamp';
+
+  static const sectionId = 'id';
+  static const sectionRaceId = 'race_id';
+  static const sectionName = 'name';
+
+  static const timedChallengeId = 'id';
+  static const timedChallengeSectionId = 'section_id';
+  static const timedChallengeCompletionTime = 'completion_time';
+  static const timedChallengeRank = 'rank';
 
   DatabaseHelper._privateConstructor();
   static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
@@ -76,8 +88,7 @@ class DatabaseHelper {
     await db.execute('''
           CREATE TABLE $circuitsTable (
             $circuitId INTEGER PRIMARY KEY,
-            $circuitName TEXT NOT NULL,
-            $circuitCountry TEXT NOT NULL
+            $circuitName TEXT NOT NULL
           )
           ''');
 
@@ -109,6 +120,28 @@ class DatabaseHelper {
           ON DELETE CASCADE
       )
     ''');
+
+    await db.execute('''
+      CREATE TABLE $timedRaceSectionsTable (
+        $sectionId INTEGER PRIMARY KEY AUTOINCREMENT,
+        $sectionRaceId INTEGER NOT NULL,
+        $sectionName TEXT NOT NULL,
+        FOREIGN KEY ($sectionRaceId) REFERENCES $racesTable ($raceId)
+          ON DELETE CASCADE
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE $timedChallengeTable (
+        $timedChallengeId INTEGER PRIMARY KEY AUTOINCREMENT,
+        $timedChallengeSectionId INTEGER NOT NULL,
+        $timedChallengeCompletionTime INTEGER NOT NULL,
+        $timedChallengeRank INTEGER NOT NULL,
+        FOREIGN KEY ($timedChallengeSectionId) REFERENCES $timedRaceSectionsTable ($sectionId)
+          ON DELETE CASCADE,
+        UNIQUE($timedChallengeSectionId, $timedChallengeRank)
+      )
+    ''');
   }
 
   Future<int> insertCar(Car car) async {
@@ -129,6 +162,41 @@ class DatabaseHelper {
   Future<int> insertLapResult(LapResult lapResult) async {
     Database? db = await database;
     return await db!.insert(lapResultsTable, lapResult.toMap());
+  }
+
+  Future<int> insertSection(TimedRaceSection section) async {
+    Database? db = await database;
+    return await db!.insert(timedRaceSectionsTable, section.toMap());
+  }
+
+  Future<int> getNextRankForSection(int sectionId) async {
+    Database? db = await database;
+
+    try {
+      final result = await db!.rawQuery('''
+      SELECT COALESCE(MAX($timedChallengeRank), 0) + 1 as nextRank 
+      FROM $timedChallengeTable 
+      WHERE $timedChallengeSectionId = ?
+    ''', [sectionId]);
+
+      return Sqflite.firstIntValue(result) ?? 1;
+    } catch (e) {
+      throw Exception('Failed to get next rank: $e');
+    }
+  }
+
+  Future<int> insertTimedChallenge(TimedChallenge challenge) async {
+    Database? db = await database;
+
+    try {
+      final nextRank = await getNextRankForSection(challenge.sectionId!);
+      final challengeMap = challenge.toMap();
+      challengeMap[timedChallengeRank] = nextRank;
+
+      return await db!.insert(timedChallengeTable, challengeMap);
+    } catch (e) {
+      throw Exception('Failed to insert challenge: $e');
+    }
   }
 
   Future<List<Car>> getCars() async {
@@ -153,7 +221,6 @@ class DatabaseHelper {
       return Circuit(
         id: maps[i]['id'],
         name: maps[i]['name'],
-        country: maps[i]['country'],
       );
     });
   }
@@ -202,5 +269,76 @@ class DatabaseHelper {
     return List.generate(maps.length, (i) {
       return LapResult.fromMap(maps[i]);
     });
+  }
+
+  Future<List<TimedRaceSection>> getSectionsByRaceId(int raceId) async {
+    Database? db = await database;
+    final List<Map<String, dynamic>> maps = await db!.query(
+      timedRaceSectionsTable,
+      where: '$sectionRaceId = ?',
+      whereArgs: [raceId],
+      orderBy: '$sectionName ASC',
+    );
+
+    return List.generate(maps.length, (i) {
+      return TimedRaceSection.fromMap(maps[i]);
+    });
+  }
+
+  Future<TimedRaceSection> getSectionById(int id) async {
+    Database? db = await database;
+    final List<Map<String, dynamic>> maps = await db!.query(
+      timedRaceSectionsTable,
+      where: '$sectionId = ?',
+      whereArgs: [id],
+    );
+
+    if (maps.isEmpty) {
+      throw Exception('Section not found');
+    }
+
+    return TimedRaceSection.fromMap(maps.first);
+  }
+
+  Future<List<TimedChallenge>> getChallengesBySectionId(int raceId) async {
+    Database? db = await database;
+    final List<Map<String, dynamic>> maps = await db!.query(
+      timedChallengeTable,
+      where: '$timedChallengeSectionId = ?',
+      whereArgs: [raceId],
+      orderBy: '$timedChallengeRank ASC',
+    );
+
+    return List.generate(maps.length, (i) {
+      return TimedChallenge.fromMap(maps[i]);
+    });
+  }
+
+  Future<void> updateChallengeRanks(List<TimedChallenge> challenges) async {
+    Database? db = await database;
+
+    await db!.transaction(
+      (txn) async {
+        // First update all ranks to temporary negative values
+        for (var i = 0; i < challenges.length; i++) {
+          await txn.update(
+            timedChallengeTable,
+            {timedChallengeRank: -(i + 1)},
+            where: '$timedChallengeId = ?',
+            whereArgs: [challenges[i].id],
+          );
+        }
+
+        // Then update to final positive values
+        for (var i = 0; i < challenges.length; i++) {
+          await txn.update(
+            timedChallengeTable,
+            {timedChallengeRank: i + 1},
+            where: '$timedChallengeId = ?',
+            whereArgs: [challenges[i].id],
+          );
+        }
+      },
+    );
   }
 }

@@ -1,10 +1,10 @@
 import 'package:circuito/objects/race.dart';
-import 'package:circuito/pages/races/timed/timed_race_page.dart';
+import 'package:circuito/objects/timed_race_section.dart';
+import 'package:circuito/pages/races/timed/edit_timed_race_section_page.dart';
 import 'package:circuito/utils/database.dart';
 import 'package:circuito/widgets/page_title.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:numberpicker/numberpicker.dart';
 
 class EditTimedRacePage extends StatefulWidget {
   final int id;
@@ -19,31 +19,25 @@ class EditTimedRacePage extends StatefulWidget {
 }
 
 class _EditTimedRacePageState extends State<EditTimedRacePage> {
+  late Future<List<TimedRaceSection>> _sectionsFuture;
   late Future<Race> _raceFuture;
-  int _laps = 10;
-
-  int _minutes = 0;
-  int _seconds = 0;
-  int _milliseconds = 0;
+  final TextEditingController _sectionNameController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _raceFuture = _loadRace();
+    _loadSections();
+    _raceFuture = DatabaseHelper.instance.getRaceById(widget.id);
   }
 
   @override
   void dispose() {
+    _sectionNameController.dispose();
     super.dispose();
   }
 
-  Future<Race> _loadRace() async {
-    try {
-      final race = await DatabaseHelper.instance.getRaceById(widget.id);
-      return race;
-    } catch (e) {
-      rethrow;
-    }
+  void _loadSections() {
+    _sectionsFuture = DatabaseHelper.instance.getSectionsByRaceId(widget.id);
   }
 
   @override
@@ -75,23 +69,9 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
         children: [
           const SizedBox(height: 64),
           topBar(colors, race),
-          const SizedBox(height: 64),
-          Text(
-            'number_of_laps'.tr(),
-            style: Theme.of(context).textTheme.displayMedium,
-          ),
-          const SizedBox(height: 16),
-          numberOfLaps(colors),
-          const SizedBox(height: 64),
-          Text(
-            'lap_time'.tr(),
-            style: Theme.of(context).textTheme.displayMedium,
-          ),
-          const SizedBox(height: 16),
-          timeInputSection(colors),
-          Expanded(child: Container()),
-          startRaceButton(colors, _laps, _minutes, _seconds, _milliseconds),
           const SizedBox(height: 32),
+          sectionsWidget(colors),
+          Expanded(child: Container()),
         ],
       ),
     );
@@ -99,6 +79,7 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
 
   Widget topBar(ColorScheme colors, Race race) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         PageTitleWidget(
           intro: 'timed_race'.tr(),
@@ -108,98 +89,162 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
     );
   }
 
-  Widget numberOfLaps(ColorScheme colors) {
-    return Container(
-      height: 54,
-      width: 110,
-      decoration: BoxDecoration(
-        border: Border.all(color: colors.outline, width: 2),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: NumberPicker(
-          value: _laps,
-          minValue: 1,
-          maxValue: 200,
-          itemHeight: 54,
-          itemCount: 1,
-          onChanged: (value) => setState(() => _laps = value),
-          textStyle: Theme.of(context).textTheme.displayMedium,
-          selectedTextStyle: Theme.of(context).textTheme.displayMedium),
-    );
-  }
-
-  Widget timeInputSection(ColorScheme colors) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-      decoration: BoxDecoration(
-        border: Border.all(color: colors.outline, width: 2),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          _timeUnit(colors, _minutes, 59, (value) => setState(() => _minutes = value), 'min'),
-          Text(':', style: TextStyle(color: colors.primary, fontSize: 24)),
-          _timeUnit(colors, _seconds, 59, (value) => setState(() => _seconds = value), 'sec'),
-          Text('.', style: TextStyle(color: colors.primary, fontSize: 24)),
-          _timeUnit(colors, _milliseconds, 999, (value) => setState(() => _milliseconds = value), 'ms'),
-        ],
-      ),
-    );
-  }
-
-  Widget _timeUnit(ColorScheme colors, int value, int maxValue, Function(int) onChanged, String label) {
+  Widget sectionsWidget(ColorScheme colors) {
     return Column(
-      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        NumberPicker(
-          value: value,
-          minValue: 0,
-          maxValue: maxValue,
-          itemCount: 1,
-          itemHeight: 54,
-          itemWidth: 54,
-          axis: Axis.vertical,
-          onChanged: onChanged,
-          textStyle: TextStyle(color: colors.onSurface),
-          selectedTextStyle: TextStyle(
-            color: colors.primary,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
         Text(
-          label,
-          style: TextStyle(
-            color: colors.primary,
-            fontSize: 12,
-          ),
+          'sections'.tr(),
+          style: Theme.of(context).textTheme.displayMedium,
+        ),
+        const SizedBox(height: 16),
+        FutureBuilder<List<TimedRaceSection>>(
+          future: _sectionsFuture,
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) return const SizedBox();
+
+            return Column(
+              children: [
+                sectionListWidget(colors, snapshot.data!),
+                const SizedBox(height: 16),
+                Text(
+                  'add_sections'.tr(),
+                  style: Theme.of(context).textTheme.displayMedium,
+                ),
+                const SizedBox(height: 8),
+                addSectionWidget(colors),
+              ],
+            );
+          },
         ),
       ],
     );
   }
 
-  Widget startRaceButton(ColorScheme colors, int laps, int minutes, int seconds, int milliseconds) {
+  Widget sectionListWidget(ColorScheme colors, List<TimedRaceSection> data) {
+    return Container(
+      height: 250,
+      decoration: BoxDecoration(
+        border: Border.all(color: colors.outline, width: 2),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: ListView.builder(
+        padding: EdgeInsets.zero,
+        itemCount: data.length,
+        itemBuilder: (context, index) {
+          final section = data[index];
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EditTimedRaceSectionPage(
+                    id: section.id!,
+                  ),
+                ),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: colors.outline),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    section.name,
+                    style: Theme.of(context).textTheme.displaySmall,
+                  ),
+                  Icon(
+                    Icons.chevron_right,
+                    color: colors.primary,
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget addSectionWidget(ColorScheme colors) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border.all(color: colors.outline, width: 2),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        children: [
+          sectionNameInputWidget(colors),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              plusButton(colors),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget sectionNameInputWidget(ColorScheme colors) {
+    return TextField(
+      controller: _sectionNameController,
+      style: Theme.of(context).textTheme.displayMedium,
+      decoration: InputDecoration(
+        labelText: 'name'.tr(),
+        hintText: 'example_section'.tr(),
+        labelStyle: Theme.of(context).textTheme.labelMedium,
+        hintStyle: Theme.of(context).textTheme.labelSmall,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: colors.outline),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: colors.primary),
+        ),
+      ),
+    );
+  }
+
+  Widget plusButton(ColorScheme colors) {
     return Container(
       height: 60,
-      width: MediaQuery.of(context).size.width - 96,
+      width: 120,
       decoration: BoxDecoration(
         color: colors.primary,
-        borderRadius: BorderRadius.circular(25),
+        borderRadius: BorderRadius.circular(15),
       ),
-      child: TextButton(
-        onPressed: () => {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => TimedRacePage(
-                  laps: laps, minutes: minutes, seconds: seconds, milliseconds: milliseconds, raceId: widget.id),
-            ),
-          ),
+      child: IconButton(
+        onPressed: () async {
+          if (_sectionNameController.text.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Please enter a section name')),
+            );
+            return;
+          }
+
+          final section = TimedRaceSection(
+            raceId: widget.id,
+            name: _sectionNameController.text,
+          );
+          await DatabaseHelper.instance.insertSection(section);
+          setState(() {
+            _loadSections();
+            _sectionNameController.clear();
+          });
         },
-        child: Text(
-          "go_to_race".tr(),
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
+        icon: Icon(Icons.add, color: colors.secondary, size: 32),
       ),
     );
   }

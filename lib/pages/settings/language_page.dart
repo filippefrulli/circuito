@@ -60,6 +60,7 @@ class _LanguagePageState extends State<LanguagePage> {
 
   Widget topBar(ColorScheme colors) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         PageTitleWidget(
           intro: '',

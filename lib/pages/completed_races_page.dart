@@ -1,6 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:circuito/objects/race.dart';
-import 'package:circuito/pages/races/timed/timed_race_results_page.dart';
+import 'package:circuito/pages/races/laps/laps_race_results_page.dart';
 import 'package:circuito/utils/database.dart';
 import 'package:circuito/widgets/page_title.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -82,7 +82,7 @@ class _CompletedRacesPageState extends State<CompletedRacesPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => TimedRaceResultsPage(
+                      builder: (context) => LapsRaceResultsPage(
                         raceId: race.id!,
                       ),
                     ),

@@ -47,6 +47,12 @@
     "go_to_race": "Vai alla gara",
     "lap": "Giro",
     "your": "Le tue",
+    "done": "Fatto",
+    "sections": "Sezioni",
+    "section": "Sezione",   
+    "example_section": "Esempio: Giorno 1 - Manche 1",
+    "timed_challenges": "Prove cronometrate",
+    "add_sections": "Aggiungi sezioni",
 
     "a": "una"
 }

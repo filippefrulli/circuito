@@ -14,7 +14,6 @@ class CircuitsPage extends StatefulWidget {
 class _CircuitsPageState extends State<CircuitsPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _countryController = TextEditingController();
 
   @override
   initState() {
@@ -104,38 +103,15 @@ class _CircuitsPageState extends State<CircuitsPage> {
   }
 
   Widget circuitItem(Circuit circuit, ColorScheme colors) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          border: Border.all(color: colors.primary, width: 2),
-          borderRadius: const BorderRadius.all(Radius.circular(25)),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 8),
-                Text(
-                  circuit.name,
-                  style: Theme.of(context).textTheme.displayMedium,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  circuit.country.toString(),
-                  style: Theme.of(context).textTheme.labelSmall,
-                ),
-              ],
-            ),
-            Expanded(
-              child: Container(),
-            ),
-          ],
-        ),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border.all(color: colors.primary, width: 2),
+        borderRadius: const BorderRadius.all(Radius.circular(25)),
+      ),
+      child: Text(
+        circuit.name,
+        style: Theme.of(context).textTheme.displayMedium,
       ),
     );
   }
@@ -186,21 +162,6 @@ class _CircuitsPageState extends State<CircuitsPage> {
                     return null;
                   },
                 ),
-                TextFormField(
-                  controller: _countryController,
-                  decoration: InputDecoration(
-                    labelText: 'Country',
-                    labelStyle: Theme.of(context).textTheme.labelSmall,
-                  ),
-                  style: Theme.of(context).textTheme.displayMedium,
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter country';
-                    }
-                    return null;
-                  },
-                ),
               ],
             ),
           ),
@@ -226,7 +187,6 @@ class _CircuitsPageState extends State<CircuitsPage> {
                   if (_formKey.currentState!.validate()) {
                     final circuit = Circuit(
                       name: _nameController.text,
-                      country: _countryController.text,
                     );
                     await DatabaseHelper.instance.insertCircuit(circuit);
                     _clearControllers();
@@ -248,6 +208,5 @@ class _CircuitsPageState extends State<CircuitsPage> {
 
   void _clearControllers() {
     _nameController.clear();
-    _countryController.clear();
   }
 }

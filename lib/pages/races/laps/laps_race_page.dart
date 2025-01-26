@@ -1,46 +1,50 @@
 import 'dart:async';
 
-import 'package:circuito/objects/timed_challenge.dart';
-import 'package:circuito/objects/timed_race_section.dart';
-import 'package:circuito/pages/races/timed/timed_race_results_page.dart';
+import 'package:circuito/objects/lap_result.dart';
+import 'package:circuito/pages/races/laps/laps_race_results_page.dart';
 import 'package:circuito/utils/database.dart';
 import 'package:circuito/widgets/page_title.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
-class TimedRacePage extends StatefulWidget {
-  final int id;
+class LapsRacePage extends StatefulWidget {
+  final int laps;
+  final int minutes;
+  final int seconds;
+  final int milliseconds;
+  final int raceId;
 
-  const TimedRacePage({
+  const LapsRacePage({
     super.key,
-    required this.id,
+    required this.laps,
+    required this.minutes,
+    required this.seconds,
+    required this.milliseconds,
+    required this.raceId,
   });
 
   @override
-  State<TimedRacePage> createState() => _TimedRacePageState();
+  State<LapsRacePage> createState() => _LapsRacePageState();
 }
 
-class _TimedRacePageState extends State<TimedRacePage> {
-  late List<TimedChallenge> _challenges;
-  late TimedRaceSection _section;
-
-  int _currentChallengeIndex = 0;
-
+class _LapsRacePageState extends State<LapsRacePage> {
+  late int _minutes = widget.minutes;
+  late int _seconds = widget.seconds;
+  late int _milliseconds = widget.milliseconds;
+  int _currentLap = 1;
   bool started = false;
   bool isEnded = false;
-  bool _isLoading = true;
 
   Timer? _timer;
+  late int _initialTimeInMs;
   late int _currentTimeInMs;
-
-  int minutes = 0;
-  int seconds = 0;
-  int milliseconds = 0;
 
   @override
   void initState() {
     super.initState();
-    _loadData();
+    _initialTimeInMs = _convertToMilliseconds(widget.minutes, widget.seconds, widget.milliseconds);
+    _currentTimeInMs = _initialTimeInMs;
+    _updateTimeDisplay();
   }
 
   @override
@@ -52,36 +56,23 @@ class _TimedRacePageState extends State<TimedRacePage> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-
-    if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    if (_challenges.isEmpty) {
-      return Scaffold(
-        body: Center(child: Text('no_challenges'.tr())),
-      );
-    }
-
     return Scaffold(
-      body: body(colors, _section),
+      body: body(colors),
     );
   }
 
-  Widget body(ColorScheme colors, TimedRaceSection section) {
+  Widget body(ColorScheme colors) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
         children: [
           const SizedBox(height: 64),
-          topBar(colors, section),
-          const SizedBox(height: 32),
+          topBar(colors),
+          const SizedBox(height: 64),
           timerSection(colors),
-          const SizedBox(height: 32),
-          nextChallengePreview(colors),
           Expanded(child: Container()),
+          lapCompletedButton(colors),
+          const SizedBox(height: 32),
           startRaceButton(colors),
           endRaceButton(colors),
           const SizedBox(height: 32),
@@ -90,13 +81,17 @@ class _TimedRacePageState extends State<TimedRacePage> {
     );
   }
 
-  Widget topBar(ColorScheme colors, TimedRaceSection section) {
+  Widget topBar(ColorScheme colors) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         PageTitleWidget(
-          intro: 'challenge'.tr(),
-          title: '${_currentChallengeIndex + 1} / ${_challenges.length}',
+          intro: 'timed_race'.tr(),
+          title: isEnded
+              ? 'completed'.tr()
+              : started
+                  ? 'in_progress'.tr()
+                  : 'ready'.tr(),
         ),
       ],
     );
@@ -110,9 +105,13 @@ class _TimedRacePageState extends State<TimedRacePage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            'time'.tr(),
-            style: Theme.of(context).textTheme.displayMedium,
+            '${'lap'.tr()} $_currentLap / ${widget.laps}',
+            style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                  color: colors.primary,
+                  fontWeight: FontWeight.bold,
+                ),
           ),
+          const SizedBox(height: 24),
           Container(
             padding: const EdgeInsets.all(48),
             decoration: BoxDecoration(
@@ -125,19 +124,19 @@ class _TimedRacePageState extends State<TimedRacePage> {
             child: Column(
               children: [
                 Text(
-                  '${isNegative ? '-' : ''}${minutes.abs().toString().padLeft(2, '0')}:',
+                  '${isNegative ? '-' : ''}${_minutes.abs().toString().padLeft(2, '0')}:',
                   style: Theme.of(context).textTheme.displayLarge?.copyWith(
                         color: isNegative ? colors.error : colors.onSurface,
                       ),
                 ),
                 Text(
-                  '${seconds.toString().padLeft(2, '0')}.',
+                  '${_seconds.toString().padLeft(2, '0')}.',
                   style: Theme.of(context).textTheme.displayLarge?.copyWith(
                         color: isNegative ? colors.error : colors.onSurface,
                       ),
                 ),
                 Text(
-                  milliseconds.toString().padLeft(3, '0'),
+                  _milliseconds.toString().padLeft(3, '0'),
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         color: isNegative ? colors.error : colors.onSurface,
                       ),
@@ -150,39 +149,26 @@ class _TimedRacePageState extends State<TimedRacePage> {
     );
   }
 
-  Widget nextChallengePreview(ColorScheme colors) {
-    if (_currentChallengeIndex >= _challenges.length - 1) return Container();
-
-    final nextChallenge = _challenges[_currentChallengeIndex + 1];
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border: Border.all(color: colors.outline, width: 2),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        children: [
-          Text(
-            'next_challenge'.tr(),
-            style: Theme.of(context).textTheme.displayMedium,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            _formatTime(nextChallenge.completionTime!),
-            style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _formatTime(int milliseconds) {
-    final minutes = milliseconds ~/ (60 * 1000);
-    final seconds = (milliseconds % (60 * 1000)) ~/ 1000;
-    final ms = milliseconds % 1000;
-    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}.${ms.toString().padLeft(3, '0')}';
+  lapCompletedButton(ColorScheme colors) {
+    return started && !isEnded
+        ? Container(
+            height: 60,
+            width: MediaQuery.of(context).size.width - 96,
+            decoration: BoxDecoration(
+              color: colors.primary,
+              borderRadius: BorderRadius.circular(25),
+            ),
+            child: TextButton(
+              onPressed: started ? _onLapComplete : null,
+              child: Text(
+                'lap_completed'.tr(),
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: colors.onPrimary,
+                    ),
+              ),
+            ),
+          )
+        : Container();
   }
 
   startRaceButton(ColorScheme colors) {
@@ -200,7 +186,7 @@ class _TimedRacePageState extends State<TimedRacePage> {
                 setState(() {
                   started = !started;
                   if (started) {
-                    startTimer();
+                    _startTimer();
                   }
                 });
               },
@@ -227,8 +213,8 @@ class _TimedRacePageState extends State<TimedRacePage> {
               onPressed: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
-                    builder: (context) => TimedRaceResultsPage(
-                      raceId: widget.id,
+                    builder: (context) => LapsRaceResultsPage(
+                      raceId: widget.raceId,
                     ),
                   ),
                 );
@@ -244,46 +230,66 @@ class _TimedRacePageState extends State<TimedRacePage> {
         : Container();
   }
 
-  Future<void> _loadData() async {
-    _section = await DatabaseHelper.instance.getSectionById(widget.id);
-    _challenges = await DatabaseHelper.instance.getChallengesBySectionId(widget.id);
-    if (_challenges.isNotEmpty) {
-      _currentTimeInMs = _challenges[0].completionTime!;
-      _updateTimeDisplay();
-    }
-    setState(() => _isLoading = false);
-  }
-
-  void startTimer() {
-    _timer = Timer.periodic(const Duration(milliseconds: 10), (timer) {
-      setState(() {
-        _currentTimeInMs -= 10;
-        _updateTimeDisplay();
-
-        if (_currentTimeInMs <= 0) {
-          _currentChallengeIndex++;
-          if (_currentChallengeIndex < _challenges.length) {
-            _currentTimeInMs = _challenges[_currentChallengeIndex].completionTime!;
-            _updateTimeDisplay();
-          } else {
-            _timer?.cancel();
-            isEnded = true;
-          }
-        }
-      });
-    });
+  int _convertToMilliseconds(int minutes, int seconds, int milliseconds) {
+    return (minutes * 60 * 1000) + (seconds * 1000) + milliseconds;
   }
 
   void _updateTimeDisplay() {
     final timeAbs = _currentTimeInMs.abs();
     final isNegative = _currentTimeInMs < 0;
 
-    minutes = (timeAbs ~/ (60 * 1000));
-    seconds = (timeAbs % (60 * 1000)) ~/ 1000;
-    milliseconds = timeAbs % 1000;
+    _minutes = (timeAbs ~/ (60 * 1000));
+    _seconds = (timeAbs % (60 * 1000)) ~/ 1000;
+    _milliseconds = timeAbs % 1000;
 
     if (isNegative) {
-      minutes = -minutes;
+      _minutes = -_minutes;
     }
+  }
+
+  void _startTimer() {
+    _timer = Timer.periodic(const Duration(milliseconds: 10), (timer) {
+      setState(() {
+        _currentTimeInMs -= 10;
+        _updateTimeDisplay();
+      });
+    });
+  }
+
+  void _stopTimer() {
+    _timer?.cancel();
+  }
+
+  int _calculateTimeDifference() {
+    final elapsedTime = _initialTimeInMs - _currentTimeInMs;
+    // If elapsed time is greater than initial time, return positive difference
+    // If elapsed time is less than initial time, return negative difference
+    return elapsedTime - _initialTimeInMs;
+  }
+
+  void _onLapComplete() {
+    final timeDifference = _calculateTimeDifference();
+    final completionTime = _initialTimeInMs - _currentTimeInMs;
+
+    final lapResult = LapResult(
+      raceId: widget.raceId,
+      lapNumber: _currentLap,
+      completionTime: completionTime,
+      timeDifference: timeDifference,
+      timestamp: DateTime.now().toIso8601String(),
+    );
+
+    DatabaseHelper.instance.insertLapResult(lapResult);
+
+    setState(() {
+      if (_currentLap < widget.laps) {
+        _currentTimeInMs = _initialTimeInMs;
+        _updateTimeDisplay();
+        _currentLap++;
+      } else {
+        isEnded = true;
+        _stopTimer();
+      }
+    });
   }
 }
