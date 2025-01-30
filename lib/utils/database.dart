@@ -4,6 +4,7 @@ import 'package:circuito/objects/circuit.dart';
 import 'package:circuito/objects/lap_result.dart';
 import 'package:circuito/objects/race.dart';
 import 'package:circuito/objects/timed_challenge.dart';
+import 'package:circuito/objects/timed_challenge_result.dart';
 import 'package:circuito/objects/timed_race_section.dart';
 import 'package:path/path.dart' show join;
 import 'package:sqflite/sqflite.dart';
@@ -19,6 +20,7 @@ class DatabaseHelper {
   static const lapResultsTable = 'lap_results';
   static const timedChallengeTable = 'timed_challenges';
   static const timedRaceSectionsTable = 'timed_race_sections';
+  static const timedChallengeResultsTable = 'timed_challenge_results';
 
   static const carId = 'id';
   static const carName = 'name';
@@ -51,6 +53,12 @@ class DatabaseHelper {
   static const timedChallengeSectionId = 'section_id';
   static const timedChallengeCompletionTime = 'completion_time';
   static const timedChallengeRank = 'rank';
+
+  static const challengeResultId = 'id';
+  static const challengeResultChallengeId = 'challenge_id';
+  static const challengeResultCompletionTime = 'completion_time';
+  static const challengeResultTimeDifference = 'time_difference';
+  static const challengeResultTimestamp = 'timestamp';
 
   DatabaseHelper._privateConstructor();
   static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
@@ -142,6 +150,18 @@ class DatabaseHelper {
         UNIQUE($timedChallengeSectionId, $timedChallengeRank)
       )
     ''');
+
+    await db.execute('''
+      CREATE TABLE $timedChallengeResultsTable (
+        $challengeResultId INTEGER PRIMARY KEY AUTOINCREMENT,
+        $challengeResultChallengeId INTEGER NOT NULL,
+        $challengeResultCompletionTime INTEGER NOT NULL,
+        $challengeResultTimeDifference INTEGER NOT NULL,
+        $challengeResultTimestamp TEXT NOT NULL,
+        FOREIGN KEY ($challengeResultChallengeId) REFERENCES $timedChallengeTable ($timedChallengeId)
+          ON DELETE CASCADE
+      )
+    ''');
   }
 
   Future<int> insertCar(Car car) async {
@@ -167,6 +187,20 @@ class DatabaseHelper {
   Future<int> insertSection(TimedRaceSection section) async {
     Database? db = await database;
     return await db!.insert(timedRaceSectionsTable, section.toMap());
+  }
+
+  Future<int> insertTimedChallengeResult(TimedChallengeResult result) async {
+    Database? db = await database;
+    try {
+      return await db!.insert(timedChallengeResultsTable, {
+        challengeResultChallengeId: result.challengeId,
+        challengeResultCompletionTime: result.completionTime,
+        challengeResultTimeDifference: result.timeDifference,
+        challengeResultTimestamp: result.timestamp,
+      });
+    } catch (e) {
+      throw Exception('Failed to insert challenge result: $e');
+    }
   }
 
   Future<int> getNextRankForSection(int sectionId) async {
@@ -312,6 +346,30 @@ class DatabaseHelper {
     return List.generate(maps.length, (i) {
       return TimedChallenge.fromMap(maps[i]);
     });
+  }
+
+  Future<List<TimedChallengeResult>> getTimedChallengeResultByChallengeId(int challengeId) async {
+    Database? db = await database;
+    try {
+      final List<Map<String, dynamic>> maps = await db!.query(
+        timedChallengeResultsTable,
+        where: '$challengeResultChallengeId = ?',
+        whereArgs: [challengeId],
+        orderBy: '$challengeResultTimestamp DESC',
+      );
+
+      return List.generate(maps.length, (i) {
+        return TimedChallengeResult(
+          id: maps[i][challengeResultId],
+          challengeId: maps[i][challengeResultChallengeId],
+          completionTime: maps[i][challengeResultCompletionTime],
+          timeDifference: maps[i][challengeResultTimeDifference],
+          timestamp: maps[i][challengeResultTimestamp],
+        );
+      });
+    } catch (e) {
+      throw Exception('Failed to get challenge results: $e');
+    }
   }
 
   Future<void> updateChallengeRanks(List<TimedChallenge> challenges) async {

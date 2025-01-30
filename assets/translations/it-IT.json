@@ -53,6 +53,9 @@
     "example_section": "Esempio: Giorno 1 - Manche 1",
     "timed_challenges": "Prove cronometrate",
     "add_sections": "Aggiungi sezioni",
+    "next_challenge": "Prossima prova",
+    "complete_section": "Completa sezione",
+    "challenge_completed": "Prova completata",
 
     "a": "una"
 }

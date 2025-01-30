@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:circuito/objects/timed_challenge.dart';
+import 'package:circuito/objects/timed_challenge_result.dart';
 import 'package:circuito/objects/timed_race_section.dart';
 import 'package:circuito/pages/races/timed/timed_race_results_page.dart';
 import 'package:circuito/utils/database.dart';
@@ -25,12 +26,17 @@ class _TimedRacePageState extends State<TimedRacePage> {
   late TimedRaceSection _section;
 
   int _currentChallengeIndex = 0;
+  int _totalElapsedTimeMs = 0;
+
+  int _displayChallengeIndex = 0; // For UI display
+  int _actualChallengeIndex = 0;
 
   bool started = false;
   bool isEnded = false;
   bool _isLoading = true;
 
   Timer? _timer;
+
   late int _currentTimeInMs;
 
   int minutes = 0;
@@ -83,7 +89,8 @@ class _TimedRacePageState extends State<TimedRacePage> {
           nextChallengePreview(colors),
           Expanded(child: Container()),
           startRaceButton(colors),
-          endRaceButton(colors),
+          challengeCompletedButton(colors),
+          endSectionButton(colors),
           const SizedBox(height: 32),
         ],
       ),
@@ -96,7 +103,7 @@ class _TimedRacePageState extends State<TimedRacePage> {
       children: [
         PageTitleWidget(
           intro: 'challenge'.tr(),
-          title: '${_currentChallengeIndex + 1} / ${_challenges.length}',
+          title: '${_displayChallengeIndex + 1} / ${_challenges.length}',
         ),
       ],
     );
@@ -105,45 +112,36 @@ class _TimedRacePageState extends State<TimedRacePage> {
   Widget timerSection(ColorScheme colors) {
     final isNegative = _currentTimeInMs < 0;
     return Container(
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.all(64),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: colors.primary,
+          width: 5,
+        ),
+      ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            'time'.tr(),
-            style: Theme.of(context).textTheme.displayMedium,
+            '${isNegative ? '-' : ''}${minutes.abs().toString().padLeft(2, '0')}:',
+            style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                  color: colors.primary,
+                  fontSize: 70,
+                ),
           ),
-          Container(
-            padding: const EdgeInsets.all(48),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: isNegative ? colors.error : colors.primary,
-                width: 4,
-              ),
-            ),
-            child: Column(
-              children: [
-                Text(
-                  '${isNegative ? '-' : ''}${minutes.abs().toString().padLeft(2, '0')}:',
-                  style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                        color: isNegative ? colors.error : colors.onSurface,
-                      ),
+          Text(
+            '${seconds.toString().padLeft(2, '0')}.',
+            style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                  color: colors.primary,
+                  fontSize: 70,
                 ),
-                Text(
-                  '${seconds.toString().padLeft(2, '0')}.',
-                  style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                        color: isNegative ? colors.error : colors.onSurface,
-                      ),
+          ),
+          Text(
+            milliseconds.toString().padLeft(3, '0'),
+            style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                  color: colors.primary,
+                  fontSize: 35,
                 ),
-                Text(
-                  milliseconds.toString().padLeft(3, '0'),
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: isNegative ? colors.error : colors.onSurface,
-                      ),
-                ),
-              ],
-            ),
           ),
         ],
       ),
@@ -158,7 +156,7 @@ class _TimedRacePageState extends State<TimedRacePage> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         border: Border.all(color: colors.outline, width: 2),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(15),
       ),
       child: Column(
         children: [
@@ -171,6 +169,7 @@ class _TimedRacePageState extends State<TimedRacePage> {
             _formatTime(nextChallenge.completionTime!),
             style: Theme.of(context).textTheme.displayMedium?.copyWith(
                   fontWeight: FontWeight.bold,
+                  fontSize: 42,
                 ),
           ),
         ],
@@ -214,7 +213,7 @@ class _TimedRacePageState extends State<TimedRacePage> {
           );
   }
 
-  endRaceButton(ColorScheme colors) {
+  endSectionButton(ColorScheme colors) {
     return isEnded
         ? Container(
             height: 60,
@@ -234,14 +233,62 @@ class _TimedRacePageState extends State<TimedRacePage> {
                 );
               },
               child: Text(
-                'end_race'.tr(),
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: colors.onPrimary,
-                    ),
+                'complete_section'.tr(),
+                style: Theme.of(context).textTheme.bodyMedium,
               ),
             ),
           )
         : Container();
+  }
+
+  challengeCompletedButton(ColorScheme colors) {
+    return started && !isEnded
+        ? Container(
+            height: 60,
+            width: MediaQuery.of(context).size.width - 96,
+            decoration: BoxDecoration(
+              color: colors.primary,
+              borderRadius: BorderRadius.circular(25),
+            ),
+            child: TextButton(
+              onPressed: started ? _onChallengeComplete : null,
+              child: Text(
+                'challenge_completed'.tr(),
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ),
+          )
+        : Container();
+  }
+
+  void _onChallengeComplete() async {
+    if (_displayChallengeIndex >= _challenges.length) return;
+
+    // Save result for displayed challenge
+    int previousChallengesTime = 0;
+    for (int i = 0; i < _displayChallengeIndex; i++) {
+      previousChallengesTime += _challenges[i].completionTime!;
+    }
+
+    int actualTime = _totalElapsedTimeMs - previousChallengesTime;
+    int targetTime = _challenges[_displayChallengeIndex].completionTime!;
+
+    final result = TimedChallengeResult(
+      challengeId: _challenges[_displayChallengeIndex].id!,
+      completionTime: actualTime,
+      timeDifference: actualTime - targetTime,
+      timestamp: DateTime.now().toIso8601String(),
+    );
+
+    await DatabaseHelper.instance.insertTimedChallengeResult(result);
+
+    setState(() {
+      _displayChallengeIndex++;
+      if (_displayChallengeIndex >= _challenges.length) {
+        isEnded = true;
+        _timer?.cancel();
+      }
+    });
   }
 
   Future<void> _loadData() async {
@@ -257,32 +304,37 @@ class _TimedRacePageState extends State<TimedRacePage> {
   void startTimer() {
     _timer = Timer.periodic(const Duration(milliseconds: 10), (timer) {
       setState(() {
-        _currentTimeInMs -= 10;
+        _totalElapsedTimeMs += 10;
         _updateTimeDisplay();
-
-        if (_currentTimeInMs <= 0) {
-          _currentChallengeIndex++;
-          if (_currentChallengeIndex < _challenges.length) {
-            _currentTimeInMs = _challenges[_currentChallengeIndex].completionTime!;
-            _updateTimeDisplay();
-          } else {
-            _timer?.cancel();
-            isEnded = true;
-          }
-        }
       });
     });
   }
 
   void _updateTimeDisplay() {
-    final timeAbs = _currentTimeInMs.abs();
-    final isNegative = _currentTimeInMs < 0;
+    // Calculate elapsed time for current actual challenge
+    int previousChallengesTime = 0;
+    for (int i = 0; i < _actualChallengeIndex; i++) {
+      previousChallengesTime += _challenges[i].completionTime!;
+    }
 
+    int currentChallengeElapsed = _totalElapsedTimeMs - previousChallengesTime;
+    int currentTarget = _challenges[_actualChallengeIndex].completionTime!;
+
+    _currentTimeInMs = currentTarget - currentChallengeElapsed;
+
+    // Auto-advance actual challenge index when time hits 0
+    if (_currentTimeInMs <= 0 && _actualChallengeIndex < _challenges.length - 1) {
+      _actualChallengeIndex++;
+      return;
+    }
+
+    // Update display time
+    final timeAbs = _currentTimeInMs.abs();
     minutes = (timeAbs ~/ (60 * 1000));
     seconds = (timeAbs % (60 * 1000)) ~/ 1000;
     milliseconds = timeAbs % 1000;
 
-    if (isNegative) {
+    if (_currentTimeInMs < 0 && _actualChallengeIndex == _challenges.length - 1) {
       minutes = -minutes;
     }
   }
