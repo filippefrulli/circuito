@@ -48,6 +48,7 @@ class DatabaseHelper {
   static const sectionId = 'id';
   static const sectionRaceId = 'race_id';
   static const sectionName = 'name';
+  static const sectionCompleted = 'completed';
 
   static const timedChallengeId = 'id';
   static const timedChallengeSectionId = 'section_id';
@@ -58,6 +59,7 @@ class DatabaseHelper {
   static const challengeResultChallengeId = 'challenge_id';
   static const challengeResultCompletionTime = 'completion_time';
   static const challengeResultTimeDifference = 'time_difference';
+  static const challengeResultRank = 'rank';
   static const challengeResultTimestamp = 'timestamp';
 
   DatabaseHelper._privateConstructor();
@@ -134,6 +136,7 @@ class DatabaseHelper {
         $sectionId INTEGER PRIMARY KEY AUTOINCREMENT,
         $sectionRaceId INTEGER NOT NULL,
         $sectionName TEXT NOT NULL,
+        $sectionCompleted INTEGER DEFAULT 0,
         FOREIGN KEY ($sectionRaceId) REFERENCES $racesTable ($raceId)
           ON DELETE CASCADE
       )
@@ -158,6 +161,7 @@ class DatabaseHelper {
         $challengeResultCompletionTime INTEGER NOT NULL,
         $challengeResultTimeDifference INTEGER NOT NULL,
         $challengeResultTimestamp TEXT NOT NULL,
+        $challengeResultRank INTEGER NOT NULL,
         FOREIGN KEY ($challengeResultChallengeId) REFERENCES $timedChallengeTable ($timedChallengeId)
           ON DELETE CASCADE
       )
@@ -167,6 +171,15 @@ class DatabaseHelper {
   Future<int> insertCar(Car car) async {
     Database? db = await database;
     return await db!.insert(carsTable, car.toMap());
+  }
+
+  Future<int> deleteRace(int id) async {
+    Database? db = await database;
+    return await db!.delete(
+      racesTable,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
   }
 
   Future<int> insertCircuit(Circuit circuit) async {
@@ -191,16 +204,7 @@ class DatabaseHelper {
 
   Future<int> insertTimedChallengeResult(TimedChallengeResult result) async {
     Database? db = await database;
-    try {
-      return await db!.insert(timedChallengeResultsTable, {
-        challengeResultChallengeId: result.challengeId,
-        challengeResultCompletionTime: result.completionTime,
-        challengeResultTimeDifference: result.timeDifference,
-        challengeResultTimestamp: result.timestamp,
-      });
-    } catch (e) {
-      throw Exception('Failed to insert challenge result: $e');
-    }
+    return await db!.insert(timedChallengeResultsTable, result.toMap());
   }
 
   Future<int> getNextRankForSection(int sectionId) async {
@@ -217,6 +221,20 @@ class DatabaseHelper {
     } catch (e) {
       throw Exception('Failed to get next rank: $e');
     }
+  }
+
+  Future<List<Race>> getIncompleteRaces() async {
+    Database? db = await database;
+    final List<Map<String, dynamic>> maps = await db!.query(
+      racesTable,
+      where: '$raceStatus = ?',
+      whereArgs: [0],
+      orderBy: '$raceTimestamp DESC',
+    );
+
+    return List.generate(maps.length, (i) {
+      return Race.fromMap(maps[i]);
+    });
   }
 
   Future<int> insertTimedChallenge(TimedChallenge challenge) async {
@@ -238,12 +256,7 @@ class DatabaseHelper {
     final List<Map<String, dynamic>> maps = await db!.query(carsTable);
 
     return List.generate(maps.length, (i) {
-      return Car(
-        id: maps[i]['id'],
-        name: maps[i]['name'],
-        year: maps[i]['year'],
-        image: maps[i]['image'],
-      );
+      return Car.fromMap(maps[i]);
     });
   }
 
@@ -252,10 +265,7 @@ class DatabaseHelper {
     final List<Map<String, dynamic>> maps = await db!.query(circuitsTable);
 
     return List.generate(maps.length, (i) {
-      return Circuit(
-        id: maps[i]['id'],
-        name: maps[i]['name'],
-      );
+      return Circuit.fromMap(maps[i]);
     });
   }
 
@@ -264,15 +274,7 @@ class DatabaseHelper {
     final List<Map<String, dynamic>> maps = await db!.query(racesTable);
 
     return List.generate(maps.length, (i) {
-      return Race(
-        id: maps[i][raceId],
-        name: maps[i][raceName],
-        car: maps[i][raceCarId],
-        circuit: maps[i][raceCircuitId],
-        type: maps[i][raceType],
-        status: maps[i][raceStatus],
-        timestamp: maps[i][raceTimestamp],
-      );
+      return Race.fromMap(maps[i]);
     });
   }
 
@@ -343,9 +345,12 @@ class DatabaseHelper {
       orderBy: '$timedChallengeRank ASC',
     );
 
-    return List.generate(maps.length, (i) {
-      return TimedChallenge.fromMap(maps[i]);
-    });
+    return List.generate(
+      maps.length,
+      (i) {
+        return TimedChallenge.fromMap(maps[i]);
+      },
+    );
   }
 
   Future<List<TimedChallengeResult>> getTimedChallengeResultByChallengeId(int challengeId) async {
@@ -358,15 +363,12 @@ class DatabaseHelper {
         orderBy: '$challengeResultTimestamp DESC',
       );
 
-      return List.generate(maps.length, (i) {
-        return TimedChallengeResult(
-          id: maps[i][challengeResultId],
-          challengeId: maps[i][challengeResultChallengeId],
-          completionTime: maps[i][challengeResultCompletionTime],
-          timeDifference: maps[i][challengeResultTimeDifference],
-          timestamp: maps[i][challengeResultTimestamp],
-        );
-      });
+      return List.generate(
+        maps.length,
+        (i) {
+          return TimedChallengeResult.fromMap(maps[i]);
+        },
+      );
     } catch (e) {
       throw Exception('Failed to get challenge results: $e');
     }

@@ -56,6 +56,10 @@
     "next_challenge": "Prossima prova",
     "complete_section": "Completa sezione",
     "challenge_completed": "Prova completata",
+    "incomplete_races": "Gare non completate",
+    "delete_race_confirmation": "Sei sicuro di voler eliminare questa gara?",
+    "delete": "Elimina",
+    "cancel": "Annulla",
 
     "a": "una"
 }

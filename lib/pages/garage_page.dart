@@ -104,7 +104,7 @@ class _GaragePageState extends State<GaragePage> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           border: Border.all(color: colors.primary, width: 2),
           borderRadius: const BorderRadius.all(Radius.circular(25)),
@@ -112,35 +112,23 @@ class _GaragePageState extends State<GaragePage> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 8),
-                Text(
-                  car.name,
-                  style: Theme.of(context).textTheme.displayMedium,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  car.year.toString(),
-                  style: Theme.of(context).textTheme.labelSmall,
-                ),
-              ],
+            const SizedBox(height: 8),
+            Text(
+              car.name,
+              style: Theme.of(context).textTheme.displayMedium,
             ),
-            Expanded(
-              child: Container(),
-            ),
+            Expanded(child: Container()),
             Container(
-              height: 100,
-              width: 100,
-              decoration: BoxDecoration(
-                border: Border.all(color: colors.primary, width: 1),
-                borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-              ),
-              child: Container(
-                  //Image.asset(image, width: 100, height: 100),)
-                  ),
+              width: 2,
+              height: 24,
+              color: colors.primary,
+            ),
+            const SizedBox(
+              width: 16,
+            ),
+            Text(
+              car.year.toString(),
+              style: Theme.of(context).textTheme.displayMedium,
             ),
           ],
         ),

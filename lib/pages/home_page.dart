@@ -1,8 +1,10 @@
-import 'package:circuito/pages/clock_page.dart';
+import 'package:circuito/objects/race.dart';
 import 'package:circuito/pages/completed_races_page.dart';
 import 'package:circuito/pages/races/create_race_page.dart';
+import 'package:circuito/pages/races/laps/edit_laps_race_page.dart';
+import 'package:circuito/pages/races/timed/edit_timed_race_page.dart';
 import 'package:circuito/pages/settings/settings_page.dart';
-import 'package:circuito/pages/third_page.dart';
+import 'package:circuito/utils/database.dart';
 import 'package:circuito/widgets/page_title.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -15,11 +17,12 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 1;
+  late Future<List<Race>> _incompletedRacesFuture;
 
   @override
   void initState() {
     super.initState();
+    _incompletedRacesFuture = DatabaseHelper.instance.getIncompleteRaces();
   }
 
   @override
@@ -27,76 +30,6 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Scaffold(
-      body: GestureDetector(
-        onHorizontalDragEnd: (DragEndDetails details) {
-          if (details.primaryVelocity! > 0) {
-            // Swiped right
-            setState(() {
-              if (_selectedIndex > 0) {
-                _selectedIndex--;
-              }
-            });
-          } else if (details.primaryVelocity! < 0) {
-            // Swiped left
-            setState(() {
-              if (_selectedIndex < 2) {
-                _selectedIndex++;
-              }
-            });
-          }
-        },
-        child: IndexedStack(
-          index: _selectedIndex,
-          children: const [
-            ClockPage(),
-            HomeContent(),
-            ThirdPage(),
-          ],
-        ),
-      ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: (index) => setState(() => _selectedIndex = index),
-          backgroundColor: Colors.white,
-          elevation: 0,
-          selectedItemColor: colors.primary,
-          unselectedItemColor: colors.outline,
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.timer),
-              label: '',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: '',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.directions_car),
-              label: '',
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class HomeContent extends StatefulWidget {
-  const HomeContent({super.key});
-
-  @override
-  State<HomeContent> createState() => _HomeContentState();
-}
-
-class _HomeContentState extends State<HomeContent> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
@@ -116,6 +49,8 @@ class _HomeContentState extends State<HomeContent> {
           middleButtons(colors),
           const SizedBox(height: 24),
           completedRacesButton(colors),
+          const SizedBox(height: 24),
+          incompleteRacesList(colors),
           Expanded(
             child: Container(),
           ),
@@ -263,6 +198,93 @@ class _HomeContentState extends State<HomeContent> {
     );
   }
 
+  Widget incompleteRacesList(ColorScheme colors) {
+    return FutureBuilder<List<Race>>(
+      future: _incompletedRacesFuture,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const SizedBox();
+        }
+
+        return Container(
+          height: 240,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ...snapshot.data!.map(
+                  (race) => SizedBox(
+                    width: double.infinity,
+                    child: TextButton(
+                      onPressed: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                race.type == 0 ? EditLapsRacePage(id: race.id!) : EditTimedRacePage(id: race.id!),
+                          ),
+                        );
+                        _refreshIncompleteRaces();
+                      },
+                      child: incompleteRaceItem(colors, race),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget incompleteRaceItem(ColorScheme colors, Race race) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Container(
+        width: MediaQuery.of(context).size.width,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: colors.primary,
+            width: 2,
+          ),
+          borderRadius: const BorderRadius.all(
+            Radius.circular(15),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'In progress:',
+              style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                    color: Colors.green[600],
+                  ),
+            ),
+            Row(
+              children: [
+                Text(
+                  race.name,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                Expanded(
+                  child: Container(),
+                ),
+                Icon(
+                  Icons.chevron_right,
+                  color: colors.primary,
+                  size: 32,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget newRaceButton(ColorScheme colors) {
     return Container(
       height: 60,
@@ -272,12 +294,13 @@ class _HomeContentState extends State<HomeContent> {
         borderRadius: BorderRadius.circular(25),
       ),
       child: TextButton(
-        onPressed: () => {
-          Navigator.of(context).push(
+        onPressed: () async {
+          await Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) => const CreateRacePage(),
             ),
-          ),
+          );
+          _refreshIncompleteRaces();
         },
         child: Text(
           "new_race".tr(),
@@ -303,5 +326,11 @@ class _HomeContentState extends State<HomeContent> {
         ),
       ),
     );
+  }
+
+  void _refreshIncompleteRaces() {
+    setState(() {
+      _incompletedRacesFuture = DatabaseHelper.instance.getIncompleteRaces();
+    });
   }
 }

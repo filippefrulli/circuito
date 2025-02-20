@@ -15,6 +15,16 @@ class Car {
     };
   }
 
+  factory Car.fromMap(Map<String, dynamic> map) {
+    Car race = Car(
+      id: map['id'],
+      name: map['name'],
+      year: map['year'],
+      image: map['image'],
+    );
+    return race;
+  }
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;

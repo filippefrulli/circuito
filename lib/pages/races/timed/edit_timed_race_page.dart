@@ -85,6 +85,27 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
           intro: 'timed_race'.tr(),
           title: race.name,
         ),
+        Expanded(
+          child: Container(),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: colors.primary,
+            borderRadius: const BorderRadius.all(
+              Radius.circular(
+                25,
+              ),
+            ),
+          ),
+          child: IconButton(
+            onPressed: () => _showDeleteConfirmation(context, colors, race),
+            icon: Icon(
+              Icons.delete_outlined,
+              color: colors.secondary,
+              size: 28,
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -237,6 +258,7 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
           final section = TimedRaceSection(
             raceId: widget.id,
             name: _sectionNameController.text,
+            completed: 0,
           );
           await DatabaseHelper.instance.insertSection(section);
           setState(() {
@@ -246,6 +268,41 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
         },
         icon: Icon(Icons.add, color: colors.secondary, size: 32),
       ),
+    );
+  }
+
+  Future<void> _showDeleteConfirmation(BuildContext context, ColorScheme colors, Race race) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: Text(
+            'delete_race_confirmation'.tr(args: [race.name]),
+            style: Theme.of(context).textTheme.displayMedium,
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text(
+                'cancel'.tr(),
+                style: Theme.of(context).textTheme.displaySmall,
+              ),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            TextButton(
+              child: Text(
+                'delete'.tr(),
+                style: Theme.of(context).textTheme.displaySmall!.copyWith(color: colors.error),
+              ),
+              onPressed: () {
+                DatabaseHelper.instance.deleteRace(race.id!);
+                Navigator.of(context).pop();
+                Navigator.pop(context);
+              },
+            ),
+          ],
+          actionsPadding: const EdgeInsets.all(8),
+        );
+      },
     );
   }
 }

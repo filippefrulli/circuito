@@ -277,6 +277,7 @@ class _TimedRacePageState extends State<TimedRacePage> {
       challengeId: _challenges[_displayChallengeIndex].id!,
       completionTime: actualTime,
       timeDifference: actualTime - targetTime,
+      rank: _challenges[_displayChallengeIndex].rank!,
       timestamp: DateTime.now().toIso8601String(),
     );
 

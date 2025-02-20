@@ -55,6 +55,10 @@
     "next_challenge": "Next challenge",
     "complete_section": "Complete section",
     "challenge_completed": "Challenge completed",
+    "incomplete_races": "Incomplete races",
+    "delete_race_confirmation": "Are you sure you want to delete this race?",
+    "delete": "Delete",
+    "cancel": "Cancel",
 
     "a": "a"
 }

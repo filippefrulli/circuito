@@ -21,7 +21,7 @@ class PageTitleWidget extends StatelessWidget {
         DelayedDisplay(
           fadingDuration: const Duration(milliseconds: 1000),
           child: SizedBox(
-            width: MediaQuery.of(context).size.width - 110,
+            width: MediaQuery.of(context).size.width - 120,
             child: AutoSizeText(
               title,
               wrapWords: false,

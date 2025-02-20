@@ -3,6 +3,7 @@ class TimedChallengeResult {
   final int challengeId;
   final int completionTime;
   final int timeDifference;
+  final int rank;
   final String timestamp;
 
   TimedChallengeResult({
@@ -10,6 +11,7 @@ class TimedChallengeResult {
     required this.challengeId,
     required this.completionTime,
     required this.timeDifference,
+    required this.rank,
     required this.timestamp,
   });
 
@@ -19,6 +21,7 @@ class TimedChallengeResult {
       'challenge_id': challengeId,
       'completion_time': completionTime,
       'time_difference': timeDifference,
+      'rank': rank,
       'timestamp': timestamp,
     };
   }
@@ -29,6 +32,7 @@ class TimedChallengeResult {
       challengeId: map['challenge_id'],
       completionTime: map['completion_time'],
       timeDifference: map['time_difference'],
+      rank: map['rank'],
       timestamp: map['timestamp'],
     );
   }

@@ -11,6 +11,14 @@ class Circuit {
     };
   }
 
+  factory Circuit.fromMap(Map<String, dynamic> map) {
+    Circuit race = Circuit(
+      id: map['id'],
+      name: map['name'],
+    );
+    return race;
+  }
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;

@@ -302,14 +302,14 @@ class _CreateRacePageState extends State<CreateRacePage> {
               final id = await DatabaseHelper.instance.insertRace(race);
               if (mounted) {
                 if (selectedType == RaceType.timed) {
-                  Navigator.push(
+                  Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
                       builder: (context) => EditTimedRacePage(id: id),
                     ),
                   );
                 } else {
-                  Navigator.push(
+                  Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
                       builder: (context) => EditLapsRacePage(id: id),

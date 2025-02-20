@@ -2,11 +2,13 @@ class TimedRaceSection {
   final int? id;
   final int raceId;
   final String name;
+  final int completed;
 
   TimedRaceSection({
     this.id,
     required this.raceId,
     required this.name,
+    required this.completed,
   });
 
   Map<String, dynamic> toMap() {
@@ -14,6 +16,7 @@ class TimedRaceSection {
       'id': id,
       'race_id': raceId,
       'name': name,
+      'completed': completed,
     };
   }
 
@@ -22,6 +25,7 @@ class TimedRaceSection {
       id: map['id'],
       raceId: map['race_id'],
       name: map['name'],
+      completed: map['completed'],
     );
   }
 }

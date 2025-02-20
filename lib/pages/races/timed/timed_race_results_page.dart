@@ -79,6 +79,7 @@ class _TimedRaceResultsPageState extends State<TimedRaceResultsPage> {
       child: FutureBuilder<List<TimedRaceSection>>(
         future: _sectionsFuture,
         builder: (context, sectionsSnapshot) {
+          print(sectionsSnapshot.data);
           if (!sectionsSnapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -86,6 +87,7 @@ class _TimedRaceResultsPageState extends State<TimedRaceResultsPage> {
           return FutureBuilder<Map<int, List<TimedChallengeResult>>>(
             future: _resultsFuture,
             builder: (context, resultsSnapshot) {
+              print(resultsSnapshot.data);
               if (!resultsSnapshot.hasData) {
                 return const Center(child: CircularProgressIndicator());
               }
@@ -122,7 +124,7 @@ class _TimedRaceResultsPageState extends State<TimedRaceResultsPage> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'Challenge ${result.challengeId}',
+                                'Challenge ${result.rank}',
                                 style: Theme.of(context).textTheme.displayMedium,
                               ),
                               Column(
@@ -183,17 +185,22 @@ class _TimedRaceResultsPageState extends State<TimedRaceResultsPage> {
   }
 
   Future<void> _loadResults() async {
-    _resultsFuture = Future.value({});
     final sections = await _sectionsFuture;
     final resultsMap = <int, List<TimedChallengeResult>>{};
 
     for (var section in sections) {
       final challenges = await DatabaseHelper.instance.getChallengesBySectionId(section.id!);
+      final sectionResults = <TimedChallengeResult>[];
+
       for (var challenge in challenges) {
-        final results = await DatabaseHelper.instance.getTimedChallengeResultByChallengeId(challenge.id!);
-        if (results.isNotEmpty) {
-          resultsMap[section.id!] = results;
+        final challengeResults = await DatabaseHelper.instance.getTimedChallengeResultByChallengeId(challenge.id!);
+        if (challengeResults.isNotEmpty) {
+          sectionResults.add(challengeResults.first);
         }
+      }
+
+      if (sectionResults.isNotEmpty) {
+        resultsMap[section.id!] = sectionResults;
       }
     }
 
