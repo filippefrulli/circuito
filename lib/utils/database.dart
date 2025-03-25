@@ -48,6 +48,7 @@ class DatabaseHelper {
   static const sectionId = 'id';
   static const sectionRaceId = 'race_id';
   static const sectionName = 'name';
+  static const sectionResult = 'result';
   static const sectionCompleted = 'completed';
 
   static const timedChallengeId = 'id';
@@ -136,6 +137,7 @@ class DatabaseHelper {
         $sectionId INTEGER PRIMARY KEY AUTOINCREMENT,
         $sectionRaceId INTEGER NOT NULL,
         $sectionName TEXT NOT NULL,
+        $sectionResult INTEGER,
         $sectionCompleted INTEGER DEFAULT 0,
         FOREIGN KEY ($sectionRaceId) REFERENCES $racesTable ($raceId)
           ON DELETE CASCADE
@@ -223,12 +225,65 @@ class DatabaseHelper {
     }
   }
 
+  Future<void> markSectionAsCompleted(int id, {int? timeDifference}) async {
+    Database? db = await database;
+
+    final updateMap = {
+      sectionCompleted: 1,
+    };
+
+    // Add time difference if provided
+    if (timeDifference != null) {
+      updateMap[sectionResult] = timeDifference;
+    }
+
+    await db!.transaction(
+      (txn) async {
+        await txn.update(
+          timedRaceSectionsTable,
+          updateMap,
+          where: '$sectionId = ?',
+          whereArgs: [id],
+        );
+      },
+    );
+  }
+
+  Future<void> endRace(int id) async {
+    Database? db = await database;
+
+    await db!.transaction(
+      (txn) async {
+        await txn.update(
+          racesTable,
+          {raceStatus: 1},
+          where: '$raceId = ?',
+          whereArgs: [id],
+        );
+      },
+    );
+  }
+
   Future<List<Race>> getIncompleteRaces() async {
     Database? db = await database;
     final List<Map<String, dynamic>> maps = await db!.query(
       racesTable,
       where: '$raceStatus = ?',
       whereArgs: [0],
+      orderBy: '$raceTimestamp DESC',
+    );
+
+    return List.generate(maps.length, (i) {
+      return Race.fromMap(maps[i]);
+    });
+  }
+
+  Future<List<Race>> getCompletedRaces() async {
+    Database? db = await database;
+    final List<Map<String, dynamic>> maps = await db!.query(
+      racesTable,
+      where: '$raceStatus = ?',
+      whereArgs: [1],
       orderBy: '$raceTimestamp DESC',
     );
 
@@ -313,7 +368,6 @@ class DatabaseHelper {
       timedRaceSectionsTable,
       where: '$sectionRaceId = ?',
       whereArgs: [raceId],
-      orderBy: '$sectionName ASC',
     );
 
     return List.generate(maps.length, (i) {

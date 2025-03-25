@@ -24,9 +24,10 @@
     "ready": "Pronta",
     "lap_completed": "Giro completato",
     "start_race": "Inizia gara",
+    "start_section": "Inizia sezione",
     "end_race": "Termina gara",
     "race_results": "Risultati della gara:",
-    "close": "Close",
+    "close": "Chiudi",
     "in_progress": "In corso",
     "completed": "Completata",
     "completed_races": "Gare completate",
@@ -60,6 +61,7 @@
     "delete_race_confirmation": "Sei sicuro di voler eliminare questa gara?",
     "delete": "Elimina",
     "cancel": "Annulla",
+    "end_race_confirmation": "Sei sicuro di voler terminare questa gara?",
 
     "a": "una"
 }

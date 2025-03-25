@@ -8,12 +8,10 @@ import 'package:flutter/material.dart';
 import 'package:numberpicker/numberpicker.dart';
 
 class EditTimedRaceSectionPage extends StatefulWidget {
-  final int id;
+  final int sectionId;
+  final int raceId;
 
-  const EditTimedRaceSectionPage({
-    super.key,
-    required this.id,
-  });
+  const EditTimedRaceSectionPage({super.key, required this.sectionId, required this.raceId});
 
   @override
   State<EditTimedRaceSectionPage> createState() => _EditTimedRaceSectionPageState();
@@ -33,7 +31,7 @@ class _EditTimedRaceSectionPageState extends State<EditTimedRaceSectionPage> {
   void initState() {
     super.initState();
     _loadChallenges();
-    _sectionFuture = DatabaseHelper.instance.getSectionById(widget.id);
+    _sectionFuture = DatabaseHelper.instance.getSectionById(widget.sectionId);
   }
 
   @override
@@ -42,7 +40,7 @@ class _EditTimedRaceSectionPageState extends State<EditTimedRaceSectionPage> {
   }
 
   void _loadChallenges() {
-    _challengesFuture = DatabaseHelper.instance.getChallengesBySectionId(widget.id);
+    _challengesFuture = DatabaseHelper.instance.getChallengesBySectionId(widget.sectionId);
   }
 
   @override
@@ -72,9 +70,8 @@ class _EditTimedRaceSectionPageState extends State<EditTimedRaceSectionPage> {
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
         children: [
-          const SizedBox(height: 64),
           topBar(colors, section),
-          const SizedBox(height: 64),
+          const SizedBox(height: 32),
           challengesSection(colors),
           Expanded(child: Container()),
           startSectionButton(colors),
@@ -125,7 +122,7 @@ class _EditTimedRaceSectionPageState extends State<EditTimedRaceSectionPage> {
 
   Widget challengeListWidget(ColorScheme colors, List<TimedChallenge> data) {
     return Container(
-      height: 250,
+      height: MediaQuery.of(context).size.height / 2.6,
       decoration: BoxDecoration(
         border: Border.all(color: colors.outline, width: 2),
         borderRadius: BorderRadius.circular(8),
@@ -205,7 +202,7 @@ class _EditTimedRaceSectionPageState extends State<EditTimedRaceSectionPage> {
         onPressed: () async {
           final time = (_newMinutes * 60 * 1000) + (_newSeconds * 1000) + _newMilliseconds;
           final challenge = TimedChallenge(
-            sectionId: widget.id,
+            sectionId: widget.sectionId,
             completionTime: time,
           );
           await DatabaseHelper.instance.insertTimedChallenge(challenge);
@@ -282,13 +279,14 @@ class _EditTimedRaceSectionPageState extends State<EditTimedRaceSectionPage> {
             context,
             MaterialPageRoute(
               builder: (context) => TimedRacePage(
-                id: widget.id,
+                sectionId: widget.sectionId,
+                raceId: widget.raceId,
               ),
             ),
           )
         },
         child: Text(
-          "start_race".tr(),
+          "start_section".tr(),
           style: Theme.of(context).textTheme.bodyMedium,
         ),
       ),

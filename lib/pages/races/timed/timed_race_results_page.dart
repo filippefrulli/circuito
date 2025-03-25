@@ -45,9 +45,8 @@ class _TimedRaceResultsPageState extends State<TimedRaceResultsPage> {
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
         children: [
-          const SizedBox(height: 64),
           topBar(colors),
-          const SizedBox(height: 64),
+          const SizedBox(height: 32),
           sectionResultsList(colors),
           const SizedBox(height: 32),
           backToHomeButton(colors),
@@ -79,7 +78,6 @@ class _TimedRaceResultsPageState extends State<TimedRaceResultsPage> {
       child: FutureBuilder<List<TimedRaceSection>>(
         future: _sectionsFuture,
         builder: (context, sectionsSnapshot) {
-          print(sectionsSnapshot.data);
           if (!sectionsSnapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -87,7 +85,6 @@ class _TimedRaceResultsPageState extends State<TimedRaceResultsPage> {
           return FutureBuilder<Map<int, List<TimedChallengeResult>>>(
             future: _resultsFuture,
             builder: (context, resultsSnapshot) {
-              print(resultsSnapshot.data);
               if (!resultsSnapshot.hasData) {
                 return const Center(child: CircularProgressIndicator());
               }
@@ -105,16 +102,18 @@ class _TimedRaceResultsPageState extends State<TimedRaceResultsPage> {
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         child: Text(
-                          section.name,
-                          style: Theme.of(context).textTheme.headlineMedium,
+                          "${section.name}  |  + ${(section.result / 1000).toStringAsFixed(3)}s",
+                          style: Theme.of(context).textTheme.displayMedium!.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                         ),
                       ),
                       ...results.map(
                         (result) => Container(
                           margin: const EdgeInsets.only(bottom: 16),
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
+                            horizontal: 12,
+                            vertical: 8,
                           ),
                           decoration: BoxDecoration(
                             border: Border.all(color: colors.outline, width: 2),

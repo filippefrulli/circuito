@@ -13,11 +13,15 @@ class PageTitleWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        SafeArea(
+          child: Container(),
+        ),
+        const SizedBox(height: 16),
         Text(
           intro,
           style: Theme.of(context).textTheme.displayMedium,
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12, width: MediaQuery.of(context).size.width - 110),
         DelayedDisplay(
           fadingDuration: const Duration(milliseconds: 1000),
           child: SizedBox(
@@ -25,7 +29,7 @@ class PageTitleWidget extends StatelessWidget {
             child: AutoSizeText(
               title,
               wrapWords: false,
-              maxLines: 2,
+              maxLines: MediaQuery.of(context).size.height < 670 ? 1 : 2,
               minFontSize: 12,
               style: Theme.of(context).textTheme.displayLarge,
             ),

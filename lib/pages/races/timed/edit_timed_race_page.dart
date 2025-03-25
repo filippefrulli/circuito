@@ -1,6 +1,8 @@
 import 'package:circuito/objects/race.dart';
 import 'package:circuito/objects/timed_race_section.dart';
+import 'package:circuito/pages/home_page.dart';
 import 'package:circuito/pages/races/timed/edit_timed_race_section_page.dart';
+import 'package:circuito/pages/races/timed/timed_race_results_page.dart';
 import 'package:circuito/utils/database.dart';
 import 'package:circuito/widgets/page_title.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -67,11 +69,14 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
         children: [
-          const SizedBox(height: 64),
           topBar(colors, race),
           const SizedBox(height: 32),
           sectionsWidget(colors),
           Expanded(child: Container()),
+          endRaceButton(colors, race),
+          const SizedBox(
+            height: 32,
+          ),
         ],
       ),
     );
@@ -88,25 +93,30 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
         Expanded(
           child: Container(),
         ),
-        Container(
-          decoration: BoxDecoration(
-            color: colors.primary,
-            borderRadius: const BorderRadius.all(
-              Radius.circular(
-                25,
-              ),
-            ),
-          ),
-          child: IconButton(
-            onPressed: () => _showDeleteConfirmation(context, colors, race),
-            icon: Icon(
-              Icons.delete_outlined,
-              color: colors.secondary,
-              size: 28,
-            ),
-          ),
-        ),
+        deleteButton(colors, race)
       ],
+    );
+  }
+
+  Widget deleteButton(ColorScheme colors, Race race) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: Container(
+        width: 46,
+        height: 46,
+        decoration: BoxDecoration(
+          color: colors.primary,
+          borderRadius: BorderRadius.circular(25),
+        ),
+        child: IconButton(
+          icon: Icon(
+            Icons.delete_outlined,
+            color: colors.secondary,
+            size: 28,
+          ),
+          onPressed: () => _showDeleteConfirmation(context, colors, race),
+        ),
+      ),
     );
   }
 
@@ -123,7 +133,6 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
           future: _sectionsFuture,
           builder: (context, snapshot) {
             if (!snapshot.hasData) return const SizedBox();
-
             return Column(
               children: [
                 sectionListWidget(colors, snapshot.data!),
@@ -144,7 +153,7 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
 
   Widget sectionListWidget(ColorScheme colors, List<TimedRaceSection> data) {
     return Container(
-      height: 250,
+      height: MediaQuery.of(context).size.height / 4,
       decoration: BoxDecoration(
         border: Border.all(color: colors.outline, width: 2),
         borderRadius: BorderRadius.circular(8),
@@ -156,14 +165,26 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
           final section = data[index];
           return GestureDetector(
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => EditTimedRaceSectionPage(
-                    id: section.id!,
+              if (section.completed == 1) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => TimedRaceResultsPage(
+                      raceId: widget.id,
+                    ),
                   ),
-                ),
-              );
+                );
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EditTimedRaceSectionPage(
+                      sectionId: section.id!,
+                      raceId: widget.id,
+                    ),
+                  ),
+                );
+              }
             },
             child: Container(
               padding: const EdgeInsets.all(16),
@@ -173,11 +194,23 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
                 ),
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     section.name,
                     style: Theme.of(context).textTheme.displaySmall,
+                  ),
+                  Expanded(
+                    child: Container(),
+                  ),
+                  section.completed == 1
+                      ? Icon(
+                          Icons.check,
+                          color: Colors.green[700],
+                          size: 28,
+                        )
+                      : Container(),
+                  const SizedBox(
+                    width: 8,
                   ),
                   Icon(
                     Icons.chevron_right,
@@ -258,6 +291,7 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
           final section = TimedRaceSection(
             raceId: widget.id,
             name: _sectionNameController.text,
+            result: 0,
             completed: 0,
           );
           await DatabaseHelper.instance.insertSection(section);
@@ -267,6 +301,26 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
           });
         },
         icon: Icon(Icons.add, color: colors.secondary, size: 32),
+      ),
+    );
+  }
+
+  Widget endRaceButton(ColorScheme colors, Race race) {
+    return Container(
+      height: 60,
+      width: MediaQuery.of(context).size.width - 96,
+      decoration: BoxDecoration(
+        color: colors.primary,
+        borderRadius: BorderRadius.circular(25),
+      ),
+      child: TextButton(
+        onPressed: () {
+          _showEndRaceConfirmation(context, colors, race);
+        },
+        child: Text(
+          "end_race".tr(),
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
       ),
     );
   }
@@ -297,6 +351,45 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
                 DatabaseHelper.instance.deleteRace(race.id!);
                 Navigator.of(context).pop();
                 Navigator.pop(context);
+              },
+            ),
+          ],
+          actionsPadding: const EdgeInsets.all(8),
+        );
+      },
+    );
+  }
+
+  Future<void> _showEndRaceConfirmation(BuildContext context, ColorScheme colors, Race race) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: Text(
+            'end_race_confirmation'.tr(),
+            style: Theme.of(context).textTheme.displayMedium,
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text(
+                'cancel'.tr(),
+                style: Theme.of(context).textTheme.displaySmall,
+              ),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            TextButton(
+              child: Text(
+                'end_race'.tr(),
+                style: Theme.of(context).textTheme.displaySmall!.copyWith(color: colors.error),
+              ),
+              onPressed: () async {
+                await DatabaseHelper.instance.endRace(race.id!);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const HomePage(),
+                  ),
+                );
               },
             ),
           ],

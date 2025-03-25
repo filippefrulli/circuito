@@ -37,7 +37,6 @@ class _CircuitsPageState extends State<CircuitsPage> {
           mainAxisAlignment: MainAxisAlignment.start,
           mainAxisSize: MainAxisSize.max,
           children: [
-            const SizedBox(height: 64),
             topBar(colors),
             const SizedBox(height: 32),
             circuitsList(colors),
@@ -55,7 +54,7 @@ class _CircuitsPageState extends State<CircuitsPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         PageTitleWidget(
-          intro: 'my_sg'.tr(),
+          intro: 'my_pl'.tr(),
           title: 'circuits'.tr(),
         ),
         Expanded(

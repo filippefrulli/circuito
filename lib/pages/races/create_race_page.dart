@@ -55,9 +55,8 @@ class _CreateRacePageState extends State<CreateRacePage> {
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
         children: [
-          const SizedBox(height: 64),
           topBar(colors),
-          const SizedBox(height: 64),
+          const SizedBox(height: 32),
           raceNameInput(colors),
           selectCar(colors),
           selectCircuit(colors),
@@ -273,6 +272,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
         child: Text(
           'no_cars'.tr(),
           style: Theme.of(context).textTheme.labelSmall,
+          textAlign: TextAlign.center,
         ),
       ),
     );

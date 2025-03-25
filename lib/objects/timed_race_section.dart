@@ -2,12 +2,14 @@ class TimedRaceSection {
   final int? id;
   final int raceId;
   final String name;
+  final int result;
   final int completed;
 
   TimedRaceSection({
     this.id,
     required this.raceId,
     required this.name,
+    required this.result,
     required this.completed,
   });
 
@@ -16,6 +18,7 @@ class TimedRaceSection {
       'id': id,
       'race_id': raceId,
       'name': name,
+      'result': result,
       'completed': completed,
     };
   }
@@ -25,6 +28,7 @@ class TimedRaceSection {
       id: map['id'],
       raceId: map['race_id'],
       name: map['name'],
+      result: map['result'],
       completed: map['completed'],
     );
   }

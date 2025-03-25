@@ -1,6 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:circuito/objects/race.dart';
-import 'package:circuito/pages/races/laps/laps_race_results_page.dart';
+import 'package:circuito/pages/races/timed/timed_race_results_page.dart';
 import 'package:circuito/utils/database.dart';
 import 'package:circuito/widgets/page_title.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -19,7 +19,7 @@ class _CompletedRacesPageState extends State<CompletedRacesPage> {
   @override
   void initState() {
     super.initState();
-    _racesFuture = DatabaseHelper.instance.getRaces();
+    _racesFuture = DatabaseHelper.instance.getCompletedRaces();
   }
 
   @override
@@ -30,12 +30,9 @@ class _CompletedRacesPageState extends State<CompletedRacesPage> {
         padding: const EdgeInsets.symmetric(horizontal: 32),
         child: Column(
           children: [
-            const SizedBox(height: 64),
             topBar(colors),
             const SizedBox(height: 32),
-            raceList(
-              colors,
-            )
+            raceList(colors),
           ],
         ),
       ),
@@ -67,6 +64,7 @@ class _CompletedRacesPageState extends State<CompletedRacesPage> {
               child: Text(
                 'no_completed_races'.tr(),
                 style: Theme.of(context).textTheme.titleLarge,
+                textAlign: TextAlign.center,
               ),
             );
           }
@@ -82,7 +80,7 @@ class _CompletedRacesPageState extends State<CompletedRacesPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => LapsRaceResultsPage(
+                      builder: (context) => TimedRaceResultsPage(
                         raceId: race.id!,
                       ),
                     ),

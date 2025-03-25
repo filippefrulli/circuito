@@ -38,7 +38,6 @@ class _GaragePageState extends State<GaragePage> {
           mainAxisAlignment: MainAxisAlignment.start,
           mainAxisSize: MainAxisSize.max,
           children: [
-            const SizedBox(height: 64),
             topBar(colors),
             const SizedBox(height: 32),
             carList(colors),

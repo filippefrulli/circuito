@@ -10,11 +10,13 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 class TimedRacePage extends StatefulWidget {
-  final int id;
+  final int sectionId;
+  final int raceId;
 
   const TimedRacePage({
     super.key,
-    required this.id,
+    required this.sectionId,
+    required this.raceId,
   });
 
   @override
@@ -28,7 +30,7 @@ class _TimedRacePageState extends State<TimedRacePage> {
   int _currentChallengeIndex = 0;
   int _totalElapsedTimeMs = 0;
 
-  int _displayChallengeIndex = 0; // For UI display
+  int _displayChallengeIndex = 0;
   int _actualChallengeIndex = 0;
 
   bool started = false;
@@ -81,11 +83,10 @@ class _TimedRacePageState extends State<TimedRacePage> {
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
         children: [
-          const SizedBox(height: 64),
           topBar(colors, section),
-          const SizedBox(height: 32),
+          MediaQuery.of(context).size.width < 670 ? Container() : const SizedBox(height: 32),
           timerSection(colors),
-          const SizedBox(height: 32),
+          MediaQuery.of(context).size.width < 670 ? Container() : const SizedBox(height: 32),
           nextChallengePreview(colors),
           Expanded(child: Container()),
           startRaceButton(colors),
@@ -204,10 +205,8 @@ class _TimedRacePageState extends State<TimedRacePage> {
                 });
               },
               child: Text(
-                'start_race'.tr(),
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: colors.onPrimary,
-                    ),
+                'start_section'.tr(),
+                style: Theme.of(context).textTheme.bodyMedium,
               ),
             ),
           );
@@ -223,11 +222,17 @@ class _TimedRacePageState extends State<TimedRacePage> {
               borderRadius: BorderRadius.circular(25),
             ),
             child: TextButton(
-              onPressed: () {
+              onPressed: () async {
+                final results = await _calculateSectionResults();
+
+                await DatabaseHelper.instance.markSectionAsCompleted(
+                  widget.sectionId,
+                  timeDifference: results['timeDifference'],
+                );
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
                     builder: (context) => TimedRaceResultsPage(
-                      raceId: widget.id,
+                      raceId: widget.sectionId,
                     ),
                   ),
                 );
@@ -264,7 +269,6 @@ class _TimedRacePageState extends State<TimedRacePage> {
   void _onChallengeComplete() async {
     if (_displayChallengeIndex >= _challenges.length) return;
 
-    // Save result for displayed challenge
     int previousChallengesTime = 0;
     for (int i = 0; i < _displayChallengeIndex; i++) {
       previousChallengesTime += _challenges[i].completionTime!;
@@ -286,6 +290,7 @@ class _TimedRacePageState extends State<TimedRacePage> {
     setState(() {
       _displayChallengeIndex++;
       if (_displayChallengeIndex >= _challenges.length) {
+        _displayChallengeIndex--;
         isEnded = true;
         _timer?.cancel();
       }
@@ -293,8 +298,8 @@ class _TimedRacePageState extends State<TimedRacePage> {
   }
 
   Future<void> _loadData() async {
-    _section = await DatabaseHelper.instance.getSectionById(widget.id);
-    _challenges = await DatabaseHelper.instance.getChallengesBySectionId(widget.id);
+    _section = await DatabaseHelper.instance.getSectionById(widget.sectionId);
+    _challenges = await DatabaseHelper.instance.getChallengesBySectionId(widget.sectionId);
     if (_challenges.isNotEmpty) {
       _currentTimeInMs = _challenges[0].completionTime!;
       _updateTimeDisplay();
@@ -338,5 +343,28 @@ class _TimedRacePageState extends State<TimedRacePage> {
     if (_currentTimeInMs < 0 && _actualChallengeIndex == _challenges.length - 1) {
       minutes = -minutes;
     }
+  }
+
+  Future<Map<String, int>> _calculateSectionResults() async {
+    // Get all challenge results for this section
+    List<TimedChallengeResult> allResults = [];
+
+    for (var challenge in _challenges) {
+      final results = await DatabaseHelper.instance.getTimedChallengeResultByChallengeId(challenge.id!);
+      if (results.isNotEmpty) {
+        allResults.add(results.first);
+      }
+    }
+
+    // Calculate total target time
+    int totalTargetTime = _challenges.fold(0, (sum, challenge) => sum + challenge.completionTime!);
+
+    // Calculate total actual time
+    int totalActualTime = allResults.fold(0, (sum, result) => sum + result.completionTime);
+
+    // Calculate total time difference
+    int totalTimeDifference = totalActualTime - totalTargetTime;
+
+    return {'targetTime': totalTargetTime, 'actualTime': totalActualTime, 'timeDifference': totalTimeDifference};
   }
 }
