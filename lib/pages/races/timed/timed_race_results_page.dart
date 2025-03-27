@@ -20,21 +20,34 @@ class TimedRaceResultsPage extends StatefulWidget {
 }
 
 class _TimedRaceResultsPageState extends State<TimedRaceResultsPage> {
-  late Future<Race> _raceFuture;
-  late Future<List<TimedRaceSection>> _sectionsFuture;
-  late Future<Map<int, List<TimedChallengeResult>>> _resultsFuture;
+  Race? _race;
+  List<TimedRaceSection>? _sections;
+  Map<int, List<TimedChallengeResult>>? _results;
+  bool _isLoading = true;
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    _raceFuture = DatabaseHelper.instance.getRaceById(widget.raceId);
-    _sectionsFuture = DatabaseHelper.instance.getSectionsByRaceId(widget.raceId);
-    _loadResults();
+    _loadAllData();
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_errorMessage != null || _race == null) {
+      return Scaffold(
+        body: Center(child: Text(_errorMessage ?? 'Race data not available')),
+      );
+    }
+
     return Scaffold(
       body: body(colors),
     );
@@ -57,100 +70,90 @@ class _TimedRaceResultsPageState extends State<TimedRaceResultsPage> {
   }
 
   Widget topBar(ColorScheme colors) {
-    return FutureBuilder<Race>(
-      future: _raceFuture,
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) return const SizedBox();
-        return Row(
-          children: [
-            PageTitleWidget(
-              intro: 'race_results'.tr(),
-              title: snapshot.data!.name,
-            ),
-          ],
-        );
-      },
+    return Row(
+      children: [
+        PageTitleWidget(
+          intro: 'race_results'.tr(),
+          title: _race!.name,
+        ),
+      ],
     );
   }
 
   Widget sectionResultsList(ColorScheme colors) {
+    if (_sections == null || _sections!.isEmpty) {
+      return const Center(
+        child: Text('No sections found'),
+      );
+    }
+
     return Expanded(
-      child: FutureBuilder<List<TimedRaceSection>>(
-        future: _sectionsFuture,
-        builder: (context, sectionsSnapshot) {
-          if (!sectionsSnapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      child: ListView.builder(
+        padding: EdgeInsets.zero,
+        itemCount: _sections!.length,
+        itemBuilder: (context, sectionIndex) {
+          final section = _sections![sectionIndex];
+          final results = _results?[section.id!] ?? [];
 
-          return FutureBuilder<Map<int, List<TimedChallengeResult>>>(
-            future: _resultsFuture,
-            builder: (context, resultsSnapshot) {
-              if (!resultsSnapshot.hasData) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              return ListView.builder(
-                padding: EdgeInsets.zero,
-                itemCount: sectionsSnapshot.data!.length,
-                itemBuilder: (context, sectionIndex) {
-                  final section = sectionsSnapshot.data![sectionIndex];
-                  final results = resultsSnapshot.data![section.id!] ?? [];
-
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        child: Text(
-                          "${section.name}  |  + ${(section.result / 1000).toStringAsFixed(3)}s",
-                          style: Theme.of(context).textTheme.displayMedium!.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+          return ExpansionTile(
+            tilePadding: const EdgeInsets.only(bottom: 8),
+            title: Text(
+              section.name,
+              style: Theme.of(context).textTheme.displayMedium!.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                "+ ${(section.result / 1000).toStringAsFixed(3)}s",
+                style: Theme.of(context).textTheme.displayMedium!.copyWith(
+                      color: section.result > 0 ? colors.error : Colors.green[600],
+                    ),
+              ),
+            ),
+            children: results
+                .map(
+                  (result) => Container(
+                    margin: const EdgeInsets.symmetric(
+                      vertical: 8,
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: colors.outline, width: 2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Challenge ${result.rank}',
+                          style: Theme.of(context).textTheme.displayMedium,
                         ),
-                      ),
-                      ...results.map(
-                        (result) => Container(
-                          margin: const EdgeInsets.only(bottom: 16),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: colors.outline, width: 2),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Challenge ${result.rank}',
-                                style: Theme.of(context).textTheme.displayMedium,
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              _formatTime(result.completionTime),
+                              style: Theme.of(context).textTheme.displayMedium,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              _formatTimeDifference(result.timeDifference),
+                              style: TextStyle(
+                                color: result.timeDifference > 0 ? colors.error : Colors.green[600],
                               ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text(
-                                    _formatTime(result.completionTime),
-                                    style: Theme.of(context).textTheme.displayMedium,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    _formatTimeDifference(result.timeDifference),
-                                    style: TextStyle(
-                                      color: result.timeDifference > 0 ? colors.error : Colors.green[600],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      )
-                    ],
-                  );
-                },
-              );
-            },
+                      ],
+                    ),
+                  ),
+                )
+                .toList(),
           );
         },
       ),
@@ -175,7 +178,7 @@ class _TimedRaceResultsPageState extends State<TimedRaceResultsPage> {
         },
         child: Text(
           'close'.tr(),
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: colors.onPrimary,
               ),
         ),
@@ -183,27 +186,50 @@ class _TimedRaceResultsPageState extends State<TimedRaceResultsPage> {
     );
   }
 
-  Future<void> _loadResults() async {
-    final sections = await _sectionsFuture;
-    final resultsMap = <int, List<TimedChallengeResult>>{};
+  Future<void> _loadAllData() async {
+    try {
+      // Load race data
+      _race = await DatabaseHelper.instance.getRaceById(widget.raceId);
+      if (_race == null) {
+        setState(() {
+          _errorMessage = 'Race not found';
+          _isLoading = false;
+        });
+        return;
+      }
 
-    for (var section in sections) {
-      final challenges = await DatabaseHelper.instance.getChallengesBySectionId(section.id!);
-      final sectionResults = <TimedChallengeResult>[];
+      // Load sections data
+      _sections = await DatabaseHelper.instance.getSectionsByRaceId(widget.raceId);
 
-      for (var challenge in challenges) {
-        final challengeResults = await DatabaseHelper.instance.getTimedChallengeResultByChallengeId(challenge.id!);
-        if (challengeResults.isNotEmpty) {
-          sectionResults.add(challengeResults.first);
+      // Load results data
+      final resultsMap = <int, List<TimedChallengeResult>>{};
+      for (var section in _sections!) {
+        final challenges = await DatabaseHelper.instance.getChallengesBySectionId(section.id!);
+        final sectionResults = <TimedChallengeResult>[];
+
+        for (var challenge in challenges) {
+          final challengeResults = await DatabaseHelper.instance.getTimedChallengeResultByChallengeId(challenge.id!);
+          if (challengeResults.isNotEmpty) {
+            sectionResults.add(challengeResults.first);
+          }
+        }
+
+        if (sectionResults.isNotEmpty) {
+          resultsMap[section.id!] = sectionResults;
         }
       }
 
-      if (sectionResults.isNotEmpty) {
-        resultsMap[section.id!] = sectionResults;
-      }
-    }
+      _results = resultsMap;
 
-    _resultsFuture = Future.value(resultsMap);
+      setState(() {
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Error loading data: $e';
+        _isLoading = false;
+      });
+    }
   }
 
   String _formatTime(int milliseconds) {

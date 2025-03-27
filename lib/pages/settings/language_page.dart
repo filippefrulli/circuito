@@ -24,8 +24,6 @@ class _LanguagePageState extends State<LanguagePage> {
 
   int selected = 42;
 
-  double opacity = 1.0;
-
   @override
   initState() {
     super.initState();
@@ -40,33 +38,27 @@ class _LanguagePageState extends State<LanguagePage> {
   }
 
   Widget body(ColorScheme colors) {
-    return Column(
-      children: [
-        const SizedBox(height: 64),
-        topBar(colors),
-        const SizedBox(height: 64),
-        languageList(),
-        Expanded(
-          child: Container(),
-        ),
-        Expanded(
-          child: Container(),
-        ),
-        nextButton(),
-        const SizedBox(height: 32),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Column(
+        children: [
+          topBar(colors),
+          const SizedBox(height: 64),
+          languageList(),
+          Expanded(
+            child: Container(),
+          ),
+          nextButton(),
+          const SizedBox(height: 32),
+        ],
+      ),
     );
   }
 
   Widget topBar(ColorScheme colors) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        PageTitleWidget(
-          intro: '',
-          title: 'Select_language'.tr(),
-        ),
-      ],
+    return PageTitleWidget(
+      intro: '',
+      title: 'Select_language'.tr(),
     );
   }
 

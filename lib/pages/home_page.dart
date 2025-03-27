@@ -44,7 +44,7 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         children: [
           topBar(colors),
-          const SizedBox(height: 32),
+          MediaQuery.of(context).size.height < 670 ? const SizedBox(height: 32) : const SizedBox(height: 64),
           middleButtons(colors),
           const SizedBox(height: 24),
           completedRacesButton(colors),
@@ -208,7 +208,7 @@ class _HomePageState extends State<HomePage> {
         }
 
         return Container(
-          height: MediaQuery.of(context).size.width < 670 ? 200 : 240,
+          height: MediaQuery.of(context).size.height < 670 ? 200 : 240,
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: SingleChildScrollView(
             child: Column(

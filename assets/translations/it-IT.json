@@ -1,8 +1,9 @@
 {
     "welcome_back": "Bentornato",
+    "welcome": "Benvenuto",
     "my_garage": "Il mio Garage",
     "my_circuits": "I miei circuiti",
-    "my_races": "Le mie gare concluse",
+    "my_races": "Le mie gare completate",
     "new_race": "Inizia una nuova gara",
     "continue_race": "Continua la tua gara",
     "my_pl": "I miei",
@@ -25,7 +26,7 @@
     "lap_completed": "Giro completato",
     "start_race": "Inizia gara",
     "start_section": "Inizia sezione",
-    "end_race": "Termina gara",
+    "end_race": "Termina",
     "race_results": "Risultati della gara:",
     "close": "Chiudi",
     "in_progress": "In corso",
@@ -48,7 +49,7 @@
     "go_to_race": "Vai alla gara",
     "lap": "Giro",
     "your": "Le tue",
-    "done": "Fatto",
+    "done": "Seleziona",
     "sections": "Sezioni",
     "section": "Sezione",   
     "example_section": "Esempio: Giorno 1 - Manche 1",
@@ -62,6 +63,6 @@
     "delete": "Elimina",
     "cancel": "Annulla",
     "end_race_confirmation": "Sei sicuro di voler terminare questa gara?",
-
+    "laps_race": "Gara a giri",
     "a": "una"
 }

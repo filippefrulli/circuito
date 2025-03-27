@@ -1,5 +1,6 @@
 {
     "welcome_back": "Welcome back",
+    "welcome": "Welcome",
     "my_garage": "My Garage",
     "my_circuits": "My circuits",
     "my_races": "My completed races",
@@ -61,6 +62,6 @@
     "delete": "Delete",
     "cancel": "Cancel",
     "end_race_confirmation": "Are you sure you want to end this race?",
-
+    "laps_race": "Laps race",
     "a": "a"
 }

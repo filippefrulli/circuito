@@ -30,7 +30,7 @@ class _CircuitsPageState extends State<CircuitsPage> {
   Widget pageBody() {
     final colors = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 32),
       child: SizedBox(
         height: MediaQuery.of(context).size.height,
         child: Column(

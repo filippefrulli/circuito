@@ -13,10 +13,7 @@ class PageTitleWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SafeArea(
-          child: Container(),
-        ),
-        const SizedBox(height: 16),
+        MediaQuery.of(context).size.height < 670 ? const SizedBox(height: 16) : const SizedBox(height: 64),
         Text(
           intro,
           style: Theme.of(context).textTheme.displayMedium,

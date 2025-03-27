@@ -42,7 +42,6 @@ class _LapsRaceResultsPageState extends State<LapsRaceResultsPage> {
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
         children: [
-          const SizedBox(height: 64),
           topBar(colors),
           const SizedBox(height: 64),
           lapResultList(colors),
@@ -86,8 +85,8 @@ class _LapsRaceResultsPageState extends State<LapsRaceResultsPage> {
             itemBuilder: (context, index) {
               final lap = snapshot.data![index];
               return Container(
-                margin: const EdgeInsets.only(bottom: 16),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 decoration: BoxDecoration(
                   border: Border.all(color: colors.outline, width: 2),
                   borderRadius: BorderRadius.circular(8),
@@ -143,7 +142,7 @@ class _LapsRaceResultsPageState extends State<LapsRaceResultsPage> {
         },
         child: Text(
           'close'.tr(),
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: colors.onPrimary,
               ),
         ),

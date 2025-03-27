@@ -66,7 +66,6 @@ class _LapsRacePageState extends State<LapsRacePage> {
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
         children: [
-          const SizedBox(height: 64),
           topBar(colors),
           const SizedBox(height: 64),
           timerSection(colors),
@@ -100,7 +99,6 @@ class _LapsRacePageState extends State<LapsRacePage> {
   Widget timerSection(ColorScheme colors) {
     final isNegative = _currentTimeInMs < 0;
     return Container(
-      padding: const EdgeInsets.all(32),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -109,16 +107,17 @@ class _LapsRacePageState extends State<LapsRacePage> {
             style: Theme.of(context).textTheme.displayMedium?.copyWith(
                   color: colors.primary,
                   fontWeight: FontWeight.bold,
+                  fontSize: 32,
                 ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
           Container(
-            padding: const EdgeInsets.all(48),
+            padding: const EdgeInsets.all(64),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: isNegative ? colors.error : colors.primary,
-                width: 4,
+                color: colors.primary,
+                width: 5,
               ),
             ),
             child: Column(
@@ -127,18 +126,21 @@ class _LapsRacePageState extends State<LapsRacePage> {
                   '${isNegative ? '-' : ''}${_minutes.abs().toString().padLeft(2, '0')}:',
                   style: Theme.of(context).textTheme.displayLarge?.copyWith(
                         color: isNegative ? colors.error : colors.onSurface,
+                        fontSize: 70,
                       ),
                 ),
                 Text(
                   '${_seconds.toString().padLeft(2, '0')}.',
                   style: Theme.of(context).textTheme.displayLarge?.copyWith(
                         color: isNegative ? colors.error : colors.onSurface,
+                        fontSize: 70,
                       ),
                 ),
                 Text(
                   _milliseconds.toString().padLeft(3, '0'),
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         color: isNegative ? colors.error : colors.onSurface,
+                        fontSize: 35,
                       ),
                 ),
               ],
@@ -162,7 +164,7 @@ class _LapsRacePageState extends State<LapsRacePage> {
               onPressed: started ? _onLapComplete : null,
               child: Text(
                 'lap_completed'.tr(),
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: colors.onPrimary,
                     ),
               ),
@@ -192,7 +194,7 @@ class _LapsRacePageState extends State<LapsRacePage> {
               },
               child: Text(
                 'start_race'.tr(),
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: colors.onPrimary,
                     ),
               ),
@@ -221,7 +223,7 @@ class _LapsRacePageState extends State<LapsRacePage> {
               },
               child: Text(
                 'end_race'.tr(),
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: colors.onPrimary,
                     ),
               ),

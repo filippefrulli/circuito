@@ -100,7 +100,7 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
 
   Widget deleteButton(ColorScheme colors, Race race) {
     return Padding(
-      padding: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.only(top: 64),
       child: Container(
         width: 46,
         height: 46,
@@ -329,32 +329,54 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
     return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          content: Text(
-            'delete_race_confirmation'.tr(args: [race.name]),
-            style: Theme.of(context).textTheme.displayMedium,
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+            side: BorderSide(color: colors.outline, width: 2),
           ),
-          actions: <Widget>[
-            TextButton(
-              child: Text(
-                'cancel'.tr(),
-                style: Theme.of(context).textTheme.displaySmall,
-              ),
-              onPressed: () => Navigator.of(context).pop(),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'delete_race_confirmation'.tr(),
+                  style: Theme.of(context).textTheme.displayMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Expanded(
+                      child: cancelButton(colors),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Container(
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: colors.error,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: TextButton(
+                          child: Text(
+                            'delete'.tr(),
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          onPressed: () {
+                            DatabaseHelper.instance.deleteRace(race.id!);
+                            Navigator.of(context).pop();
+                            Navigator.pop(context);
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            TextButton(
-              child: Text(
-                'delete'.tr(),
-                style: Theme.of(context).textTheme.displaySmall!.copyWith(color: colors.error),
-              ),
-              onPressed: () {
-                DatabaseHelper.instance.deleteRace(race.id!);
-                Navigator.of(context).pop();
-                Navigator.pop(context);
-              },
-            ),
-          ],
-          actionsPadding: const EdgeInsets.all(8),
+          ),
         );
       },
     );
@@ -364,38 +386,78 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
     return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          content: Text(
-            'end_race_confirmation'.tr(),
-            style: Theme.of(context).textTheme.displayMedium,
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+            side: BorderSide(color: colors.outline, width: 2),
           ),
-          actions: <Widget>[
-            TextButton(
-              child: Text(
-                'cancel'.tr(),
-                style: Theme.of(context).textTheme.displaySmall,
-              ),
-              onPressed: () => Navigator.of(context).pop(),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'end_race_confirmation'.tr(),
+                  style: Theme.of(context).textTheme.displayMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Expanded(
+                      child: cancelButton(colors),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Container(
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: colors.primary,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: TextButton(
+                          child: Text(
+                            'end_race'.tr(),
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          onPressed: () {
+                            DatabaseHelper.instance.endRace(race.id!);
+                            Navigator.of(context).pop();
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const HomePage(),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            TextButton(
-              child: Text(
-                'end_race'.tr(),
-                style: Theme.of(context).textTheme.displaySmall!.copyWith(color: colors.error),
-              ),
-              onPressed: () async {
-                await DatabaseHelper.instance.endRace(race.id!);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const HomePage(),
-                  ),
-                );
-              },
-            ),
-          ],
-          actionsPadding: const EdgeInsets.all(8),
+          ),
         );
       },
+    );
+  }
+
+  Widget cancelButton(ColorScheme colors) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: colors.outline, width: 2),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      height: 50,
+      child: TextButton(
+        child: Text(
+          'cancel'.tr(),
+          style: Theme.of(context).textTheme.displaySmall,
+        ),
+        onPressed: () => Navigator.of(context).pop(),
+      ),
     );
   }
 }
