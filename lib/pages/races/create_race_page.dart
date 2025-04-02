@@ -296,7 +296,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
                 circuit: selectedCircuit!.id!,
                 type: selectedType!.id,
                 status: 0,
-                timestamp: DateTime.now().toIso8601String(),
+                createdAt: DateTime.now().toIso8601String(),
               );
 
               final id = await DatabaseHelper.instance.insertRace(race);

@@ -5,7 +5,7 @@ class Race {
   final int circuit;
   final int type;
   final int status;
-  final String timestamp;
+  final String createdAt;
 
   Race({
     this.id,
@@ -14,7 +14,7 @@ class Race {
     required this.circuit,
     required this.type,
     required this.status,
-    required this.timestamp,
+    required this.createdAt,
   });
 
   Map<String, dynamic> toMap() {
@@ -25,7 +25,7 @@ class Race {
       'circuit': circuit,
       'type': type,
       'status': status,
-      'timestamp': timestamp,
+      'created_at': createdAt,
     };
   }
 
@@ -37,7 +37,7 @@ class Race {
       circuit: map['circuit'],
       type: map['type'],
       status: map['status'],
-      timestamp: map['timestamp'],
+      createdAt: map['created_at'],
     );
     return race;
   }

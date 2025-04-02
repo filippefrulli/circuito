@@ -75,7 +75,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget settingsButton(ColorScheme colors) {
     return Padding(
-      padding: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.only(top: 64),
       child: Container(
         width: 46,
         height: 46,
@@ -159,26 +159,26 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget completedRacesButton(ColorScheme colors) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      height: 70,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(25),
-        border: Border.all(
-          color: colors.primary,
-          width: 2,
+    return TextButton(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const CompletedRacesPage(),
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        height: 70,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(25),
+          border: Border.all(
+            color: colors.primary,
+            width: 2,
+          ),
         ),
-      ),
-      child: TextButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const CompletedRacesPage(),
-            ),
-          );
-        },
         child: Row(
           children: [
             Text(
@@ -223,7 +223,7 @@ class _HomePageState extends State<HomePage> {
                           context,
                           MaterialPageRoute(
                             builder: (context) =>
-                                race.type == 0 ? EditLapsRacePage(id: race.id!) : EditTimedRacePage(id: race.id!),
+                                race.type == 2 ? EditLapsRacePage(id: race.id!) : EditTimedRacePage(id: race.id!),
                           ),
                         );
                         _refreshIncompleteRaces();

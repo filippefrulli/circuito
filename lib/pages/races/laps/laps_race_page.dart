@@ -212,7 +212,16 @@ class _LapsRacePageState extends State<LapsRacePage> {
               borderRadius: BorderRadius.circular(25),
             ),
             child: TextButton(
-              onPressed: () {
+              onPressed: () async {
+                final averageTime = await calculateAverageTime();
+                final fastestLapTime = await calculateFastestLapTime();
+                await DatabaseHelper.instance.endRace(widget.raceId);
+                await DatabaseHelper.instance.insertRaceResult(
+                  widget.raceId,
+                  averageTime,
+                  fastestLapTime,
+                  null,
+                );
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
                     builder: (context) => LapsRaceResultsPage(
@@ -230,6 +239,42 @@ class _LapsRacePageState extends State<LapsRacePage> {
             ),
           )
         : Container();
+  }
+
+  Future<int> calculateAverageTime() async {
+    // Get all lap results for this race
+    final lapResults = await DatabaseHelper.instance.getLapResultsByRaceId(widget.raceId);
+
+    if (lapResults.isEmpty) {
+      return 0;
+    }
+
+    // Calculate total completion time
+    final totalCompletionTime = lapResults.fold(0, (sum, lap) => sum + lap.completionTime);
+
+    // Calculate average lap time
+    final averageLapTime = totalCompletionTime ~/ lapResults.length;
+
+    return averageLapTime;
+  }
+
+  Future<int> calculateFastestLapTime() async {
+    final lapResults = await DatabaseHelper.instance.getLapResultsByRaceId(widget.raceId);
+
+    if (lapResults.isEmpty) {
+      return 0;
+    }
+
+    // Find the lap with the smallest completion time
+    int fastestLapTime = lapResults[0].completionTime;
+
+    for (var lap in lapResults) {
+      if (lap.completionTime < fastestLapTime) {
+        fastestLapTime = lap.completionTime;
+      }
+    }
+
+    return fastestLapTime;
   }
 
   int _convertToMilliseconds(int minutes, int seconds, int milliseconds) {
@@ -278,7 +323,7 @@ class _LapsRacePageState extends State<LapsRacePage> {
       lapNumber: _currentLap,
       completionTime: completionTime,
       timeDifference: timeDifference,
-      timestamp: DateTime.now().toIso8601String(),
+      createdAt: DateTime.now().toIso8601String(),
     );
 
     DatabaseHelper.instance.insertLapResult(lapResult);

@@ -4,7 +4,7 @@ class LapResult {
   final int lapNumber;
   final int completionTime;
   final int timeDifference;
-  final String timestamp;
+  final String createdAt;
 
   LapResult({
     this.id,
@@ -12,7 +12,7 @@ class LapResult {
     required this.lapNumber,
     required this.completionTime,
     required this.timeDifference,
-    required this.timestamp,
+    required this.createdAt,
   });
 
   Map<String, dynamic> toMap() {
@@ -22,7 +22,7 @@ class LapResult {
       'lap_number': lapNumber,
       'completion_time': completionTime,
       'time_difference': timeDifference,
-      'timestamp': timestamp,
+      'created_at': createdAt,
     };
   }
 
@@ -33,7 +33,7 @@ class LapResult {
       lapNumber: map['lap_number'],
       completionTime: map['completion_time'],
       timeDifference: map['time_difference'],
-      timestamp: map['timestamp'],
+      createdAt: map['created_at'],
     );
   }
 }

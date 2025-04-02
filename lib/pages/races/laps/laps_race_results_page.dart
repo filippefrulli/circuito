@@ -75,6 +75,7 @@ class _LapsRaceResultsPageState extends State<LapsRaceResultsPage> {
       child: FutureBuilder<List<LapResult>>(
         future: _lapResultsFuture,
         builder: (context, snapshot) {
+          print(snapshot.data);
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }

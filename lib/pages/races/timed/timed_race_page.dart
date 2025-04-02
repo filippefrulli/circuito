@@ -282,7 +282,7 @@ class _TimedRacePageState extends State<TimedRacePage> {
       completionTime: actualTime,
       timeDifference: actualTime - targetTime,
       rank: _challenges[_displayChallengeIndex].rank!,
-      timestamp: DateTime.now().toIso8601String(),
+      createdAt: DateTime.now().toIso8601String(),
     );
 
     await DatabaseHelper.instance.insertTimedChallengeResult(result);

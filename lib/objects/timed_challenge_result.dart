@@ -4,7 +4,7 @@ class TimedChallengeResult {
   final int completionTime;
   final int timeDifference;
   final int rank;
-  final String timestamp;
+  final String createdAt;
 
   TimedChallengeResult({
     this.id,
@@ -12,7 +12,7 @@ class TimedChallengeResult {
     required this.completionTime,
     required this.timeDifference,
     required this.rank,
-    required this.timestamp,
+    required this.createdAt,
   });
 
   Map<String, dynamic> toMap() {
@@ -22,7 +22,7 @@ class TimedChallengeResult {
       'completion_time': completionTime,
       'time_difference': timeDifference,
       'rank': rank,
-      'timestamp': timestamp,
+      'created_at': createdAt,
     };
   }
 
@@ -33,7 +33,7 @@ class TimedChallengeResult {
       completionTime: map['completion_time'],
       timeDifference: map['time_difference'],
       rank: map['rank'],
-      timestamp: map['timestamp'],
+      createdAt: map['created_at'],
     );
   }
 }
