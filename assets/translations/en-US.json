@@ -41,7 +41,7 @@
     "select": "Select",
     "settings": "Settings",
     "Select_language": "Select language",
-    "no_cars": "No cars available",
+    "no_cars": "No cars added yet",
     "race_name": "Race name",
     "enter_race_name": "Enter race name",
     "time_trial": "Time trial",
@@ -57,11 +57,14 @@
     "next_challenge": "Next challenge",
     "complete_section": "Complete section",
     "challenge_completed": "Challenge completed",
+    "challenge": "Challenge",
     "incomplete_races": "Incomplete races",
     "delete_race_confirmation": "Are you sure you want to delete this race?",
     "delete": "Delete",
     "cancel": "Cancel",
     "end_race_confirmation": "Are you sure you want to end this race?",
     "laps_race": "Laps race",
-    "a": "a"
+    "a": "a",
+    "average_lap": "Average lap time",
+    "fastest_lap": "Fastest lap"
 }

@@ -27,7 +27,6 @@ class _TimedRacePageState extends State<TimedRacePage> {
   late List<TimedChallenge> _challenges;
   late TimedRaceSection _section;
 
-  int _currentChallengeIndex = 0;
   int _totalElapsedTimeMs = 0;
 
   int _displayChallengeIndex = 0;
@@ -150,9 +149,9 @@ class _TimedRacePageState extends State<TimedRacePage> {
   }
 
   Widget nextChallengePreview(ColorScheme colors) {
-    if (_currentChallengeIndex >= _challenges.length - 1) return Container();
+    if (_displayChallengeIndex >= _challenges.length - 1) return Container();
 
-    final nextChallenge = _challenges[_currentChallengeIndex + 1];
+    final nextChallenge = _challenges[_displayChallengeIndex + 1];
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(

@@ -21,11 +21,13 @@ class LapsRaceResultsPage extends StatefulWidget {
 class _LapsRaceResultsPageState extends State<LapsRaceResultsPage> {
   late Future<Race> _raceFuture;
   late Future<List<LapResult>> _lapResultsFuture;
+  late Future<Map<String, dynamic>?> _raceResultsFuture;
 
   @override
   void initState() {
     super.initState();
     _raceFuture = DatabaseHelper.instance.getRaceById(widget.raceId);
+    _raceResultsFuture = DatabaseHelper.instance.getRaceResults(widget.raceId);
     _lapResultsFuture = DatabaseHelper.instance.getLapResultsByRaceId(widget.raceId);
   }
 
@@ -44,6 +46,8 @@ class _LapsRaceResultsPageState extends State<LapsRaceResultsPage> {
         children: [
           topBar(colors),
           const SizedBox(height: 64),
+          lapRaceHighlights(colors),
+          const SizedBox(height: 32),
           lapResultList(colors),
           const SizedBox(height: 32),
           backToHomeButton(colors),
@@ -70,12 +74,70 @@ class _LapsRaceResultsPageState extends State<LapsRaceResultsPage> {
     );
   }
 
+  Widget lapRaceHighlights(ColorScheme colors) {
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: _raceResultsFuture,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final raceResults = snapshot.data;
+
+        if (raceResults == null) {
+          return const SizedBox();
+        }
+
+        final fastestLapTime = raceResults[DatabaseHelper.raceResultLapsFastestLap];
+        final averageLapTime = raceResults[DatabaseHelper.raceResultLapsAverageLapTime];
+
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            highlightsCard(colors, 'average_lap', averageLapTime),
+            const SizedBox(width: 16),
+            highlightsCard(colors, 'fastest_lap', fastestLapTime),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget highlightsCard(ColorScheme colors, String title, int value) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(color: colors.outline, width: 2),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          children: [
+            Text(
+              title.tr(),
+              style: Theme.of(context).textTheme.titleMedium,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _formatTime(value),
+              style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colors.primary,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget lapResultList(ColorScheme colors) {
     return Expanded(
       child: FutureBuilder<List<LapResult>>(
         future: _lapResultsFuture,
         builder: (context, snapshot) {
-          print(snapshot.data);
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }

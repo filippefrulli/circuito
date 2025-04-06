@@ -95,66 +95,68 @@ class _TimedRaceResultsPageState extends State<TimedRaceResultsPage> {
           final section = _sections![sectionIndex];
           final results = _results?[section.id!] ?? [];
 
-          return ExpansionTile(
-            tilePadding: const EdgeInsets.only(bottom: 8),
-            title: Text(
-              section.name,
-              style: Theme.of(context).textTheme.displayMedium!.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            subtitle: Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                "+ ${(section.result / 1000).toStringAsFixed(3)}s",
-                style: Theme.of(context).textTheme.displayMedium!.copyWith(
-                      color: section.result > 0 ? colors.error : Colors.green[600],
-                    ),
-              ),
-            ),
-            children: results
-                .map(
-                  (result) => Container(
-                    margin: const EdgeInsets.symmetric(
-                      vertical: 8,
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: colors.outline, width: 2),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Challenge ${result.rank}',
-                          style: Theme.of(context).textTheme.displayMedium,
+          return results.length > 0
+              ? ExpansionTile(
+                  tilePadding: const EdgeInsets.only(bottom: 8),
+                  title: Text(
+                    section.name,
+                    style: Theme.of(context).textTheme.displayMedium!.copyWith(
+                          fontWeight: FontWeight.bold,
                         ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              _formatTime(result.completionTime),
-                              style: Theme.of(context).textTheme.displayMedium,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              _formatTimeDifference(result.timeDifference),
-                              style: TextStyle(
-                                color: result.timeDifference > 0 ? colors.error : Colors.green[600],
+                  ),
+                  subtitle: Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      "+ ${(section.result / 1000).toStringAsFixed(3)}s",
+                      style: Theme.of(context).textTheme.displayMedium!.copyWith(
+                            color: section.result > 0 ? colors.error : Colors.green[600],
+                          ),
+                    ),
+                  ),
+                  children: results
+                      .map(
+                        (result) => Container(
+                          margin: const EdgeInsets.symmetric(
+                            vertical: 8,
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: colors.outline, width: 2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Challenge ${result.rank}',
+                                style: Theme.of(context).textTheme.displayMedium,
                               ),
-                            ),
-                          ],
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    _formatTime(result.completionTime),
+                                    style: Theme.of(context).textTheme.displayMedium,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    _formatTimeDifference(result.timeDifference),
+                                    style: TextStyle(
+                                      color: result.timeDifference > 0 ? colors.error : Colors.green[600],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ],
-                    ),
-                  ),
+                      )
+                      .toList(),
                 )
-                .toList(),
-          );
+              : Container();
         },
       ),
     );

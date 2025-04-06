@@ -26,7 +26,7 @@
     "lap_completed": "Giro completato",
     "start_race": "Inizia gara",
     "start_section": "Inizia sezione",
-    "end_race": "Termina",
+    "end_race": "Termina gara",
     "race_results": "Risultati della gara:",
     "close": "Chiudi",
     "in_progress": "In corso",
@@ -41,7 +41,7 @@
     "select": "Seleziona",
     "settings": "Impostazioni",
     "Select_language": "Seleziona lingua",
-    "no_cars": "Nessuna macchina disponibile",
+    "no_cars": "Nessuna macchina aggiunta",
     "race_name": "Nome della gara",
     "enter_race_name": "Inserisci il nome della gara",
     "time_trial": "Gara a tempo",
@@ -58,11 +58,14 @@
     "next_challenge": "Prossima prova",
     "complete_section": "Completa sezione",
     "challenge_completed": "Prova completata",
+    "challenge": "Prova",
     "incomplete_races": "Gare non completate",
     "delete_race_confirmation": "Sei sicuro di voler eliminare questa gara?",
     "delete": "Elimina",
     "cancel": "Annulla",
     "end_race_confirmation": "Sei sicuro di voler terminare questa gara?",
     "laps_race": "Gara a giri",
-    "a": "una"
+    "a": "una",
+    "average_lap": "Giro medio",
+    "fastest_lap": "Giro più veloce"
 }

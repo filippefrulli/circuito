@@ -81,7 +81,7 @@ class _GaragePageState extends State<GaragePage> {
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return Center(
               child: Text(
-                'No cars yet',
+                'no_cars'.tr(),
                 style: TextStyle(color: colors.onSurface),
               ),
             );
