@@ -23,6 +23,7 @@ class _TimedRaceResultsPageState extends State<TimedRaceResultsPage> {
   Race? _race;
   List<TimedRaceSection>? _sections;
   Map<int, List<TimedChallengeResult>>? _results;
+  Map<String, dynamic>? _raceResults;
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -60,6 +61,8 @@ class _TimedRaceResultsPageState extends State<TimedRaceResultsPage> {
         children: [
           topBar(colors),
           const SizedBox(height: 32),
+          overallResultsWidget(colors),
+          const SizedBox(height: 16),
           sectionResultsList(colors),
           const SizedBox(height: 32),
           backToHomeButton(colors),
@@ -80,6 +83,87 @@ class _TimedRaceResultsPageState extends State<TimedRaceResultsPage> {
     );
   }
 
+  Widget overallResultsWidget(ColorScheme colors) {
+    final totalTime = _raceResults?[DatabaseHelper.raceResultTimedFinalTime];
+    final totalScore = _raceResults?[DatabaseHelper.raceResultTimedFinalScore];
+
+    if (totalTime == null) {
+      return const SizedBox();
+    }
+
+    return Row(
+      children: [
+        Expanded(
+          child: totalTimeWidget(colors, totalTime),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: totalScoreWidget(colors, totalScore ?? 0),
+        ),
+      ],
+    );
+  }
+
+  Widget totalTimeWidget(ColorScheme colors, int totalTime) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        border: Border.all(color: colors.outline, width: 2),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        children: [
+          Text(
+            'total_time'.tr(),
+            style: Theme.of(context).textTheme.displaySmall!.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _formatTimeDifference(totalTime),
+            style: Theme.of(context).textTheme.displayMedium!.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colors.error,
+                ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget totalScoreWidget(ColorScheme colors, int totalScore) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        border: Border.all(color: colors.outline, width: 2),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        children: [
+          Text(
+            'total_score'.tr(),
+            style: Theme.of(context).textTheme.displaySmall!.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            totalScore.toString(),
+            style: Theme.of(context).textTheme.displayMedium!.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green[600],
+                ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget sectionResultsList(ColorScheme colors) {
     if (_sections == null || _sections!.isEmpty) {
       return const Center(
@@ -95,7 +179,7 @@ class _TimedRaceResultsPageState extends State<TimedRaceResultsPage> {
           final section = _sections![sectionIndex];
           final results = _results?[section.id!] ?? [];
 
-          return results.length > 0
+          return results.isNotEmpty
               ? ExpansionTile(
                   tilePadding: const EdgeInsets.only(bottom: 8),
                   title: Text(
@@ -199,6 +283,9 @@ class _TimedRaceResultsPageState extends State<TimedRaceResultsPage> {
         });
         return;
       }
+
+      // Load race results
+      _raceResults = await DatabaseHelper.instance.getRaceResults(widget.raceId);
 
       // Load sections data
       _sections = await DatabaseHelper.instance.getSectionsByRaceId(widget.raceId);

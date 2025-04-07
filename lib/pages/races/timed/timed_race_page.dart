@@ -226,6 +226,7 @@ class _TimedRacePageState extends State<TimedRacePage> {
 
                 await DatabaseHelper.instance.markSectionAsCompleted(
                   widget.sectionId,
+                  widget.raceId,
                   timeDifference: results['timeDifference'],
                 );
                 Navigator.of(context).pushReplacement(

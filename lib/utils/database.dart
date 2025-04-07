@@ -44,6 +44,7 @@ class DatabaseHelper {
   static const raceResultLapsFastestLap = 'fastest_lap';
   static const raceResultLapsAverageLapTime = 'average_lap_time';
   static const raceResultTimedFinalTime = 'final_time';
+  static const raceResultTimedFinalScore = 'final_score';
 
   static const lapResultId = 'id';
   static const lapResultRaceId = 'race_id';
@@ -133,6 +134,7 @@ class DatabaseHelper {
         $raceResultLapsFastestLap INTEGER,
         $raceResultLapsAverageLapTime INTEGER,
         $raceResultTimedFinalTime INTEGER,
+        $raceResultTimedFinalScore INTEGER,
         FOREIGN KEY ($raceResultRaceId) REFERENCES $racesTable ($raceId)
           ON DELETE CASCADE
       )
@@ -311,6 +313,7 @@ class DatabaseHelper {
     int? fastestLap,
     int? averageLapTime,
     int? finalTime,
+    int? finalScore,
   ) async {
     Database? db = await database;
 
@@ -321,6 +324,7 @@ class DatabaseHelper {
         if (fastestLap != null) raceResultLapsFastestLap: fastestLap,
         if (averageLapTime != null) raceResultLapsAverageLapTime: averageLapTime,
         if (finalTime != null) raceResultTimedFinalTime: finalTime,
+        if (finalScore != null) raceResultTimedFinalScore: finalScore,
       },
     );
   }
@@ -385,7 +389,7 @@ class DatabaseHelper {
     }
   }
 
-  Future<void> markSectionAsCompleted(int id, {int? timeDifference}) async {
+  Future<void> markSectionAsCompleted(int id, int raceId, {int? timeDifference}) async {
     Database? db = await database;
 
     final updateMap = {
@@ -407,6 +411,108 @@ class DatabaseHelper {
         );
       },
     );
+
+    // Update the race results
+    if (timeDifference != null) {
+      await updateRaceResultsForSection(id, raceId, timeDifference);
+    }
+  }
+
+  Future<void> updateRaceResultsForSection(int sectionId, int raceId, int timeDifference) async {
+    Database? db = await database;
+    int totalTimeDifference = 0;
+
+    await db!.transaction((txn) async {
+      // Get all sections for this race
+      final allSections = await txn.query(
+        timedRaceSectionsTable,
+        where: '$sectionRaceId = ?',
+        whereArgs: [raceId],
+      );
+
+      // Check if all sections are completed
+      final sections = allSections.map((map) => TimedRaceSection.fromMap(map)).toList();
+
+      // Calculate total time difference across all completed sections
+      for (var section in sections) {
+        if (section.completed == 1) {
+          totalTimeDifference += section.result;
+        }
+      }
+
+      // Check if race result already exists
+      final existingResults = await txn.query(
+        raceResultsTable,
+        where: '$raceResultRaceId = ?',
+        whereArgs: [raceId],
+      );
+
+      // Update race results table
+      final resultData = {
+        raceResultTimedFinalTime: totalTimeDifference,
+      };
+
+      if (existingResults.isEmpty) {
+        resultData[raceResultRaceId] = raceId;
+        await txn.insert(raceResultsTable, resultData);
+      } else {
+        await txn.update(
+          raceResultsTable,
+          resultData,
+          where: '$raceResultRaceId = ?',
+          whereArgs: [raceId],
+        );
+      }
+    });
+
+    await calculateFinalScore(raceId, totalTimeDifference);
+  }
+
+  Future<void> calculateFinalScore(int raceId, int totalTime) async {
+    Database? db = await database;
+
+    try {
+      // Step 1: Get the race to find the car ID
+      final race = await getRaceById(raceId);
+      final carId = race.car;
+
+      // Step 2: Get the car to find its year
+      final cars = await db!.query(
+        carsTable,
+        where: '$carId = ?',
+        whereArgs: [carId],
+      );
+
+      if (cars.isEmpty) {
+        throw Exception('Car not found');
+      }
+
+      final car = Car.fromMap(cars.first);
+      final carYear = car.year;
+
+      // Step 4: Calculate coefficient based on car year (year / 100)
+      final coefficient = (carYear % 100) / 100 + 1;
+
+      print("total time: $totalTime");
+
+      print("Coefficient: $coefficient");
+
+      // Step 5: Calculate final score
+      // Multiply time by 100, then by coefficient
+      final finalScore = ((totalTime / 10) * coefficient).round();
+
+      print('Final Score: $finalScore');
+
+      // Step 6: Update race results with the final score
+      await db.update(
+        raceResultsTable,
+        {raceResultTimedFinalScore: finalScore},
+        where: '$raceResultRaceId = ?',
+        whereArgs: [raceId],
+      );
+    } catch (e) {
+      throw Exception('Failed to calculate final score: $e');
+    }
   }
 
   Future<List<TimedRaceSection>> getSectionsByRaceId(int raceId) async {

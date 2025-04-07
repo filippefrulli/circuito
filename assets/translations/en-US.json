@@ -66,5 +66,7 @@
     "laps_race": "Laps race",
     "a": "a",
     "average_lap": "Average lap time",
-    "fastest_lap": "Fastest lap"
+    "fastest_lap": "Fastest lap",
+    "total_time": "Total time",
+    "total_score": "Total score"
 }

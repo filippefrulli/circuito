@@ -221,6 +221,7 @@ class _LapsRacePageState extends State<LapsRacePage> {
                   averageTime,
                   fastestLapTime,
                   null,
+                  null,
                 );
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(

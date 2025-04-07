@@ -37,7 +37,6 @@ class _SettingsPageState extends State<SettingsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.max,
           children: [
-            const SizedBox(height: 64),
             topBar(colors),
             const SizedBox(height: 32),
             TextButton(

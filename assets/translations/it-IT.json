@@ -67,5 +67,7 @@
     "laps_race": "Gara a giri",
     "a": "una",
     "average_lap": "Giro medio",
-    "fastest_lap": "Giro più veloce"
+    "fastest_lap": "Giro più veloce",
+    "total_time": "Tempo totale",
+    "total_score": "Punteggio totale"
 }
