@@ -105,16 +105,16 @@ class _HomePageState extends State<HomePage> {
   middleButtons(ColorScheme colors) {
     return Row(
       children: [
-        centerButton(colors, Icons.car_rental, 'my_garage'.tr(), '/garage'),
+        centerButton(colors, 'garage', 'my_garage'.tr(), '/garage'),
         const SizedBox(
           width: 24,
         ),
-        centerButton(colors, Icons.home, 'my_circuits'.tr(), '/circuits'),
+        centerButton(colors, 'race-track', 'my_circuits'.tr(), '/circuits'),
       ],
     );
   }
 
-  Widget centerButton(ColorScheme colors, IconData icon, String text, String route) {
+  Widget centerButton(ColorScheme colors, String icon, String text, String route) {
     return Container(
       height: (MediaQuery.of(context).size.width / 2) - 82,
       width: (MediaQuery.of(context).size.width / 2) - 44,
@@ -133,10 +133,10 @@ class _HomePageState extends State<HomePage> {
             Expanded(
               child: Container(),
             ),
-            Icon(
-              icon,
-              color: colors.primary,
-              size: 32,
+            Image.asset(
+              'assets/icons/$icon.png',
+              width: 42,
+              height: 42,
             ),
             Expanded(
               child: Container(),

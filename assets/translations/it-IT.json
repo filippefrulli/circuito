@@ -69,5 +69,6 @@
     "average_lap": "Giro medio",
     "fastest_lap": "Giro più veloce",
     "total_time": "Tempo totale",
-    "total_score": "Punteggio totale"
+    "total_score": "Punteggio totale",
+    "no_challenges": "Nessuna prova cronometrata"
 }

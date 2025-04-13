@@ -65,8 +65,9 @@
     "end_race_confirmation": "Are you sure you want to end this race?",
     "laps_race": "Laps race",
     "a": "a",
-    "average_lap": "Average lap time",
+    "average_lap": "Average lap",
     "fastest_lap": "Fastest lap",
     "total_time": "Total time",
-    "total_score": "Total score"
+    "total_score": "Total score",
+    "no_challenges": "No challenges added yet"
 }

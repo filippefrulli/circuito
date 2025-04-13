@@ -73,14 +73,13 @@ class _EditLapsRacePageState extends State<EditLapsRacePage> {
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
         children: [
-          const SizedBox(height: 64),
           topBar(colors, race),
           const SizedBox(height: 64),
           Text(
             'number_of_laps'.tr(),
             style: Theme.of(context).textTheme.displayMedium,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 32),
           numberOfLaps(colors),
           const SizedBox(height: 64),
           Text(
@@ -139,9 +138,21 @@ class _EditLapsRacePageState extends State<EditLapsRacePage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           _timeUnit(colors, _minutes, 59, (value) => setState(() => _minutes = value), 'min'),
-          Text(':', style: TextStyle(color: colors.primary, fontSize: 24)),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Text(
+              ':',
+              style: TextStyle(color: colors.primary, fontSize: 32),
+            ),
+          ),
           _timeUnit(colors, _seconds, 59, (value) => setState(() => _seconds = value), 'sec'),
-          Text('.', style: TextStyle(color: colors.primary, fontSize: 24)),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Text(
+              '.',
+              style: TextStyle(color: colors.primary, fontSize: 32),
+            ),
+          ),
           _timeUnit(colors, _milliseconds, 999, (value) => setState(() => _milliseconds = value), 'ms'),
         ],
       ),
@@ -164,7 +175,7 @@ class _EditLapsRacePageState extends State<EditLapsRacePage> {
           textStyle: TextStyle(color: colors.onSurface),
           selectedTextStyle: TextStyle(
             color: colors.primary,
-            fontSize: 20,
+            fontSize: 32,
             fontWeight: FontWeight.bold,
           ),
         ),

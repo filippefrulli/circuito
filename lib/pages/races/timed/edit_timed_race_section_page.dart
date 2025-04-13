@@ -274,16 +274,27 @@ class _EditTimedRaceSectionPageState extends State<EditTimedRaceSectionPage> {
         borderRadius: BorderRadius.circular(25),
       ),
       child: TextButton(
-        onPressed: () => {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => TimedRacePage(
-                sectionId: widget.sectionId,
-                raceId: widget.raceId,
-              ),
-            ),
-          )
+        onPressed: () async {
+          DatabaseHelper.instance.getChallengesBySectionId(widget.sectionId).then((value) {
+            if (value.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('no_challenges'.tr()),
+                ),
+              );
+              return;
+            } else {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => TimedRacePage(
+                    sectionId: widget.sectionId,
+                    raceId: widget.raceId,
+                  ),
+                ),
+              );
+            }
+          });
         },
         child: Text(
           "start_section".tr(),

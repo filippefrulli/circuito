@@ -1,7 +1,7 @@
 name: circuito
-description: "A new Flutter project."
+description: "Race timer & tracker"
 publish_to: 'none'
-version: 0.1.0
+version: 0.0.1
 
 environment:
   sdk: '>=3.4.4 <4.0.0'
@@ -33,3 +33,5 @@ flutter:
 
   assets:
     - assets/translations/
+    - assets/icons/garage.png
+    - assets/icons/race-track.png

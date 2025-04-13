@@ -71,7 +71,6 @@ class _LapsRacePageState extends State<LapsRacePage> {
           timerSection(colors),
           Expanded(child: Container()),
           lapCompletedButton(colors),
-          const SizedBox(height: 32),
           startRaceButton(colors),
           endRaceButton(colors),
           const SizedBox(height: 32),

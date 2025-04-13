@@ -493,15 +493,9 @@ class DatabaseHelper {
       // Step 4: Calculate coefficient based on car year (year / 100)
       final coefficient = (carYear % 100) / 100 + 1;
 
-      print("total time: $totalTime");
-
-      print("Coefficient: $coefficient");
-
       // Step 5: Calculate final score
       // Multiply time by 100, then by coefficient
       final finalScore = ((totalTime / 10) * coefficient).round();
-
-      print('Final Score: $finalScore');
 
       // Step 6: Update race results with the final score
       await db.update(
