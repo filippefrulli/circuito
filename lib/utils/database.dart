@@ -368,6 +368,15 @@ class DatabaseHelper {
 
   /* ----- SECTIONS ----- */
 
+  Future<void> deleteSection(int id) async {
+    Database? db = await database;
+    await db!.delete(
+      timedRaceSectionsTable,
+      where: '$sectionId = ?',
+      whereArgs: [id],
+    );
+  }
+
   Future<int> insertSection(TimedRaceSection section) async {
     Database? db = await database;
     return await db!.insert(timedRaceSectionsTable, section.toMap());
@@ -556,6 +565,15 @@ class DatabaseHelper {
     } catch (e) {
       throw Exception('Failed to insert challenge: $e');
     }
+  }
+
+  Future<void> deleteTimedChallenge(int id) async {
+    Database? db = await database;
+    await db!.delete(
+      timedChallengeTable,
+      where: '$timedChallengeId = ?',
+      whereArgs: [id],
+    );
   }
 
   Future<void> updateChallengeRanks(List<TimedChallenge> challenges) async {

@@ -2,7 +2,6 @@ import 'package:circuito/objects/race.dart';
 import 'package:circuito/objects/timed_race_section.dart';
 import 'package:circuito/pages/home_page.dart';
 import 'package:circuito/pages/races/timed/edit_timed_race_section_page.dart';
-import 'package:circuito/pages/races/timed/timed_race_results_page.dart';
 import 'package:circuito/utils/database.dart';
 import 'package:circuito/widgets/page_title.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -58,7 +57,16 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
           }
 
           final race = snapshot.data!;
-          return body(colors, race);
+          return SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: MediaQuery.of(context).size.height -
+                    MediaQuery.of(context).padding.top -
+                    MediaQuery.of(context).padding.bottom,
+              ),
+              child: body(colors, race),
+            ),
+          );
         },
       ),
     );
@@ -72,11 +80,8 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
           topBar(colors, race),
           const SizedBox(height: 32),
           sectionsWidget(colors),
-          Expanded(child: Container()),
+          const SizedBox(height: 32),
           endRaceButton(colors, race),
-          const SizedBox(
-            height: 32,
-          ),
         ],
       ),
     );
@@ -124,11 +129,24 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'sections'.tr(),
-          style: Theme.of(context).textTheme.displayMedium,
+        Row(
+          children: [
+            Text(
+              'sections'.tr(),
+              style: Theme.of(context).textTheme.displayMedium,
+            ),
+            IconButton(
+              icon: Icon(
+                Icons.info_outline,
+                color: colors.outline,
+                size: 20,
+              ),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              onPressed: () => _showSectionInfoDialog(context, colors),
+            ),
+          ],
         ),
-        const SizedBox(height: 16),
         FutureBuilder<List<TimedRaceSection>>(
           future: _sectionsFuture,
           builder: (context, snapshot) {
@@ -152,7 +170,24 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
   }
 
   Widget sectionListWidget(ColorScheme colors, List<TimedRaceSection> data) {
+    if (data.isEmpty) {
+      return Container(
+        height: MediaQuery.of(context).size.height / 4,
+        decoration: BoxDecoration(
+          border: Border.all(color: colors.outline, width: 2),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Center(
+          child: Text(
+            'no_sections_yet'.tr(),
+            style: Theme.of(context).textTheme.labelMedium,
+          ),
+        ),
+      );
+    }
     return Container(
+      // Consider using constraints for better height management if needed
+      // constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height / 3),
       height: MediaQuery.of(context).size.height / 4,
       decoration: BoxDecoration(
         border: Border.all(color: colors.outline, width: 2),
@@ -163,60 +198,83 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
         itemCount: data.length,
         itemBuilder: (context, index) {
           final section = data[index];
-          return GestureDetector(
-            onTap: () {
-              if (section.completed == 1) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => TimedRaceResultsPage(
-                      raceId: widget.id,
-                    ),
-                  ),
-                );
-              } else {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => EditTimedRaceSectionPage(
-                      sectionId: section.id!,
-                      raceId: widget.id,
-                    ),
-                  ),
-                );
-              }
-            },
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: colors.outline),
-                ),
+          return Container(
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: index < data.length - 1 ? BorderSide(color: colors.outline) : BorderSide.none,
               ),
-              child: Row(
-                children: [
-                  Text(
-                    section.name,
-                    style: Theme.of(context).textTheme.displaySmall,
-                  ),
-                  Expanded(
-                    child: Container(),
-                  ),
-                  section.completed == 1
-                      ? Icon(
-                          Icons.check,
+            ),
+            child: InkWell(
+              // Use InkWell for ripple effect on tap
+              onTap: () {
+                // ... existing onTap navigation logic ...
+                if (section.completed == 1) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditTimedRaceSectionPage(
+                        sectionId: section.id!,
+                        raceId: widget.id,
+                      ),
+                    ),
+                  ).then((_) => setState(() => _loadSections()));
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditTimedRaceSectionPage(
+                        sectionId: section.id!,
+                        raceId: widget.id,
+                      ),
+                    ),
+                  ).then((_) => setState(() => _loadSections()));
+                }
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        section.name,
+                        style: Theme.of(context).textTheme.displaySmall,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    // Show checkmark if completed
+                    if (section.completed == 1)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Icon(
+                          Icons.check_circle_outline,
                           color: Colors.green[700],
-                          size: 28,
-                        )
-                      : Container(),
-                  const SizedBox(
-                    width: 8,
-                  ),
-                  Icon(
-                    Icons.chevron_right,
-                    color: colors.primary,
-                  ),
-                ],
+                          size: 24,
+                        ),
+                      ),
+                    // Delete Button
+                    if (section.completed != 1)
+                      IconButton(
+                        icon: Icon(
+                          Icons.delete_outline,
+                          color: colors.primary,
+                          size: 24,
+                        ),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        onPressed: () {
+                          // Prevent deleting completed section
+                          if (section.completed == 1) return;
+                          _showDeleteSectionConfirmation(context, colors, section);
+                        },
+                      ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.chevron_right,
+                      color: colors.primary,
+                      size: 28,
+                    ),
+                  ],
+                ),
               ),
             ),
           );
@@ -458,6 +516,119 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
         ),
         onPressed: () => Navigator.of(context).pop(),
       ),
+    );
+  }
+
+  // Method to show the info dialog
+  Future<void> _showSectionInfoDialog(BuildContext context, ColorScheme colors) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'what_are_sections'.tr(),
+            style: Theme.of(context).textTheme.displayMedium,
+          ),
+          content: SingleChildScrollView(
+            child: Text(
+              'sections_explanation'.tr(),
+              style: Theme.of(context).textTheme.displaySmall,
+            ),
+          ),
+          actions: <Widget>[
+            Container(
+              decoration: BoxDecoration(
+                color: colors.primary,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: TextButton(
+                child: Text(
+                  'OK'.tr(),
+                  style: Theme.of(context).textTheme.displayMedium!.copyWith(
+                        color: Colors.white,
+                      ),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close the dialog
+                },
+              ),
+            ),
+          ],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+            side: BorderSide(color: colors.outline, width: 2),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _showDeleteSectionConfirmation(
+      BuildContext context, ColorScheme colors, TimedRaceSection section) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+            side: BorderSide(color: colors.outline, width: 2),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'delete_section_confirmation'.tr(args: [section.name]),
+                  style: Theme.of(context).textTheme.displayMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Expanded(
+                      child: cancelButton(colors),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Container(
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: colors.primary,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: TextButton(
+                          child: Text(
+                            'delete'.tr(),
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colors.onError),
+                          ),
+                          onPressed: () async {
+                            Navigator.of(context).pop();
+                            try {
+                              await DatabaseHelper.instance.deleteSection(section.id!);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('section_deleted'.tr(args: [section.name]))),
+                              );
+                              setState(() {
+                                _loadSections(); // Reload the list
+                              });
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('${'error_deleting_section'.tr()}: $e')),
+                              );
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

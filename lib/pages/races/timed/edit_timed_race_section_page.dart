@@ -97,11 +97,24 @@ class _EditTimedRaceSectionPageState extends State<EditTimedRaceSectionPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'timed_challenges'.tr(),
-          style: Theme.of(context).textTheme.displayMedium,
+        Row(
+          children: [
+            Text(
+              'timed_challenges'.tr(),
+              style: Theme.of(context).textTheme.displayMedium,
+            ),
+            IconButton(
+              icon: Icon(
+                Icons.info_outline,
+                color: colors.outline,
+                size: 20,
+              ),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              onPressed: () => _showEditSectionInfoDialog(context, colors),
+            ),
+          ],
         ),
-        const SizedBox(height: 16),
         FutureBuilder<List<TimedChallenge>>(
           future: _challengesFuture,
           builder: (context, snapshot) {
@@ -140,21 +153,51 @@ class _EditTimedRaceSectionPageState extends State<EditTimedRaceSectionPage> {
           });
 
           await DatabaseHelper.instance.updateChallengeRanks(data);
+
+          setState(() {
+            _loadChallenges();
+          });
         },
         itemBuilder: (context, index) {
           final challenge = data[index];
           return ListTile(
+            visualDensity: VisualDensity.compact,
             key: ValueKey(challenge.id),
             title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   '${challenge.rank}.',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
+                const SizedBox(width: 16),
                 Text(
                   _formatTime(challenge.completionTime!),
                   style: Theme.of(context).textTheme.titleMedium,
+                ),
+                Expanded(child: Container()),
+                IconButton(
+                  icon: Icon(
+                    Icons.delete_outline,
+                    color: colors.primary,
+                    size: 24,
+                  ),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  onPressed: () {
+                    // Prevent deleting completed section
+                    DatabaseHelper.instance.deleteTimedChallenge(challenge.id!).then(
+                      (_) {
+                        setState(() {
+                          _loadChallenges();
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('challenge_deleted'.tr()),
+                          ),
+                        );
+                      },
+                    );
+                  },
                 ),
               ],
             ),
@@ -301,6 +344,50 @@ class _EditTimedRaceSectionPageState extends State<EditTimedRaceSectionPage> {
           style: Theme.of(context).textTheme.bodyMedium,
         ),
       ),
+    );
+  }
+
+  // Method to show the info dialog
+  Future<void> _showEditSectionInfoDialog(BuildContext context, ColorScheme colors) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'what_are_timed_challenges'.tr(),
+            style: Theme.of(context).textTheme.displayMedium,
+          ),
+          content: SingleChildScrollView(
+            child: Text(
+              'timed_challenges_explanation'.tr(),
+              style: Theme.of(context).textTheme.displaySmall,
+            ),
+          ),
+          actions: <Widget>[
+            Container(
+              decoration: BoxDecoration(
+                color: colors.primary,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: TextButton(
+                child: Text(
+                  'OK',
+                  style: Theme.of(context).textTheme.displayMedium!.copyWith(
+                        color: Colors.white,
+                      ),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close the dialog
+                },
+              ),
+            ),
+          ],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+            side: BorderSide(color: colors.outline, width: 2),
+          ),
+        );
+      },
     );
   }
 }

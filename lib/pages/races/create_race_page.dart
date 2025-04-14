@@ -46,7 +46,16 @@ class _CreateRacePageState extends State<CreateRacePage> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Scaffold(
-      body: body(colors),
+      body: SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight: MediaQuery.of(context).size.height -
+                MediaQuery.of(context).padding.top -
+                MediaQuery.of(context).padding.bottom,
+          ),
+          child: body(colors),
+        ),
+      ),
     );
   }
 
@@ -54,18 +63,27 @@ class _CreateRacePageState extends State<CreateRacePage> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          topBar(colors),
-          const SizedBox(height: 32),
-          raceNameInput(colors),
-          selectCar(colors),
-          selectCircuit(colors),
-          selectType(colors),
-          Expanded(
-            child: Container(),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              topBar(colors),
+              const SizedBox(height: 32),
+              raceNameInput(colors),
+              selectCar(colors),
+              selectCircuit(colors),
+              selectType(colors),
+            ],
           ),
-          createRaceButton(colors),
-          const SizedBox(height: 32),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              createRaceButton(colors),
+              const SizedBox(height: 32),
+            ],
+          ),
         ],
       ),
     );

@@ -69,5 +69,14 @@
     "fastest_lap": "Fastest lap",
     "total_time": "Total time",
     "total_score": "Total score",
-    "no_challenges": "No challenges added yet"
+    "no_challenges": "No challenges added yet",
+    "sections_explanation": "In this section you can divide your race. \n\nWe recommend creating a section for each group of challenges \n\n(for example challenges 1-5, challenges 6-11, etc)",
+    "what_are_sections": "What are sections?",
+    "delete_section_confirmation": "Are you sure you want to delete section {}?",
+    "section_deleted": "Section {} deleted.",
+    "error_deleting_section": "Error deleting section",
+    "what_are_timed_challenges": "What are timed challenges?",
+    "timed_challenges_explanation": "In this screen you can add all the challenges you want.\n\nSelect the time of the challenge and press the + button.\n\nIf the order is wrong you can always drag and drop to reorder them.",
+    "challenge_deleted": "Challenge deleted",
+    "no_sections_yet": "No sections added yet"
 }
