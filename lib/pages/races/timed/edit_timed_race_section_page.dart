@@ -181,10 +181,7 @@ class _EditTimedRaceSectionPageState extends State<EditTimedRaceSectionPage> {
                     color: colors.primary,
                     size: 24,
                   ),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
                   onPressed: () {
-                    // Prevent deleting completed section
                     DatabaseHelper.instance.deleteTimedChallenge(challenge.id!).then(
                       (_) {
                         setState(() {

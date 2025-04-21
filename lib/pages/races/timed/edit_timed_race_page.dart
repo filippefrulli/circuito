@@ -186,8 +186,6 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
       );
     }
     return Container(
-      // Consider using constraints for better height management if needed
-      // constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height / 3),
       height: MediaQuery.of(context).size.height / 4,
       decoration: BoxDecoration(
         border: Border.all(color: colors.outline, width: 2),
@@ -205,9 +203,7 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
               ),
             ),
             child: InkWell(
-              // Use InkWell for ripple effect on tap
               onTap: () {
-                // ... existing onTap navigation logic ...
                 if (section.completed == 1) {
                   Navigator.push(
                     context,
@@ -244,7 +240,7 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
                     // Show checkmark if completed
                     if (section.completed == 1)
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        padding: const EdgeInsets.all(12),
                         child: Icon(
                           Icons.check_circle_outline,
                           color: Colors.green[700],

@@ -83,11 +83,11 @@ class _TimedRacePageState extends State<TimedRacePage> {
       child: Column(
         children: [
           topBar(colors, section),
-          MediaQuery.of(context).size.height < 670 ? Container() : const SizedBox(height: 32),
+          MediaQuery.of(context).size.height < 670 ? Container() : Expanded(child: Container()),
           timerSection(colors),
-          MediaQuery.of(context).size.height < 670 ? Container() : const SizedBox(height: 32),
+          MediaQuery.of(context).size.height < 670 ? Container() : Expanded(child: Container()),
           nextChallengePreview(colors),
-          Expanded(child: Container()),
+          const SizedBox(height: 64),
           startRaceButton(colors),
           challengeCompletedButton(colors),
           endSectionButton(colors),
@@ -111,40 +111,31 @@ class _TimedRacePageState extends State<TimedRacePage> {
 
   Widget timerSection(ColorScheme colors) {
     final isNegative = _currentTimeInMs < 0;
-    return Container(
-      padding: const EdgeInsets.all(64),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: colors.primary,
-          width: 5,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          '${isNegative ? '-' : ''}${minutes.abs().toString().padLeft(2, '0')}:',
+          style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                color: colors.primary,
+                fontSize: 66,
+              ),
         ),
-      ),
-      child: Column(
-        children: [
-          Text(
-            '${isNegative ? '-' : ''}${minutes.abs().toString().padLeft(2, '0')}:',
-            style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                  color: colors.primary,
-                  fontSize: 70,
-                ),
-          ),
-          Text(
-            '${seconds.toString().padLeft(2, '0')}.',
-            style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                  color: colors.primary,
-                  fontSize: 70,
-                ),
-          ),
-          Text(
-            milliseconds.toString().padLeft(3, '0'),
-            style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                  color: colors.primary,
-                  fontSize: 35,
-                ),
-          ),
-        ],
-      ),
+        Text(
+          '${seconds.toString().padLeft(2, '0')}.',
+          style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                color: colors.primary,
+                fontSize: 66,
+              ),
+        ),
+        Text(
+          milliseconds.toString().padLeft(3, '0'),
+          style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                color: colors.primary,
+                fontSize: 24,
+              ),
+        ),
+      ],
     );
   }
 
@@ -161,7 +152,7 @@ class _TimedRacePageState extends State<TimedRacePage> {
       child: Column(
         children: [
           Text(
-            'next_challenge'.tr(),
+            '${'next_challenge'.tr()}: #${_displayChallengeIndex + 2}',
             style: Theme.of(context).textTheme.displayMedium,
           ),
           const SizedBox(height: 8),
@@ -191,7 +182,7 @@ class _TimedRacePageState extends State<TimedRacePage> {
             height: 60,
             width: MediaQuery.of(context).size.width - 96,
             decoration: BoxDecoration(
-              color: colors.primary,
+              color: Colors.green[800],
               borderRadius: BorderRadius.circular(25),
             ),
             child: TextButton(
@@ -204,8 +195,10 @@ class _TimedRacePageState extends State<TimedRacePage> {
                 });
               },
               child: Text(
-                'start_section'.tr(),
-                style: Theme.of(context).textTheme.bodyMedium,
+                'START',
+                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
             ),
           );
@@ -252,14 +245,16 @@ class _TimedRacePageState extends State<TimedRacePage> {
             height: 60,
             width: MediaQuery.of(context).size.width - 96,
             decoration: BoxDecoration(
-              color: colors.primary,
+              color: colors.error,
               borderRadius: BorderRadius.circular(25),
             ),
             child: TextButton(
               onPressed: started ? _onChallengeComplete : null,
               child: Text(
-                'challenge_completed'.tr(),
-                style: Theme.of(context).textTheme.bodyMedium,
+                'STOP',
+                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
             ),
           )
