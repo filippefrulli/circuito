@@ -79,5 +79,8 @@
     "what_are_timed_challenges": "Cosa sono prove concatenate?",
     "timed_challenges_explanation": "in questa sezione puoi aggiungere il numero di prove che vuoi.\n\nSeleziona il tempo della prova e clicca sul tasto + per aggiungerla.\n\nSe sbagli l’ordine puoi sempre trascinarle una sopra l’altra",
     "challenge_deleted": "Prova eliminata",
-    "no_sections_yet": "Nessuna sezione aggiunta"
+    "no_sections_yet": "Nessuna sezione aggiunta",
+    "score_formula_title": "Formula del punteggio",
+    "score_formula_explanation": "(anno macchina % 100) / 100 + 1",
+    "score_formula_example": "Esempio:\n1940 % 100 = 40 / 100 + 1 = 1.40"
 }

@@ -78,21 +78,30 @@ class _TimedRacePageState extends State<TimedRacePage> {
   }
 
   Widget body(ColorScheme colors, TimedRaceSection section) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Column(
-        children: [
-          topBar(colors, section),
-          MediaQuery.of(context).size.height < 670 ? Container() : Expanded(child: Container()),
-          timerSection(colors),
-          MediaQuery.of(context).size.height < 670 ? Container() : Expanded(child: Container()),
-          nextChallengePreview(colors),
-          const SizedBox(height: 64),
-          startRaceButton(colors),
-          challengeCompletedButton(colors),
-          endSectionButton(colors),
-          const SizedBox(height: 32),
-        ],
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: started && !isEnded ? Colors.green[800]! : Colors.white,
+          width: 12,
+        ),
+        borderRadius: BorderRadius.circular(55),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          children: [
+            topBar(colors, section),
+            MediaQuery.of(context).size.height < 670 ? Container() : Expanded(child: Container()),
+            timerSection(colors),
+            MediaQuery.of(context).size.height < 670 ? Container() : Expanded(child: Container()),
+            nextChallengePreview(colors),
+            const SizedBox(height: 64),
+            startRaceButton(colors),
+            challengeCompletedButton(colors),
+            endSectionButton(colors),
+            const SizedBox(height: 32),
+          ],
+        ),
       ),
     );
   }

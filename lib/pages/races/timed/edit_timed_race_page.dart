@@ -2,6 +2,7 @@ import 'package:circuito/objects/race.dart';
 import 'package:circuito/objects/timed_race_section.dart';
 import 'package:circuito/pages/home_page.dart';
 import 'package:circuito/pages/races/timed/edit_timed_race_section_page.dart';
+import 'package:circuito/pages/races/timed/timed_race_results_page.dart';
 import 'package:circuito/utils/database.dart';
 import 'package:circuito/widgets/page_title.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -208,12 +209,11 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => EditTimedRaceSectionPage(
-                        sectionId: section.id!,
+                      builder: (context) => TimedRaceResultsPage(
                         raceId: widget.id,
                       ),
                     ),
-                  ).then((_) => setState(() => _loadSections()));
+                  );
                 } else {
                   Navigator.push(
                     context,

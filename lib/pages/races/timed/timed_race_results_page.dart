@@ -106,12 +106,14 @@ class _TimedRaceResultsPageState extends State<TimedRaceResultsPage> {
 
   Widget totalTimeWidget(ColorScheme colors, int totalTime) {
     return Container(
+      height: 108,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         border: Border.all(color: colors.outline, width: 2),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             'total_time'.tr(),
@@ -136,12 +138,14 @@ class _TimedRaceResultsPageState extends State<TimedRaceResultsPage> {
 
   Widget totalScoreWidget(ColorScheme colors, int totalScore) {
     return Container(
+      height: 108,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         border: Border.all(color: colors.outline, width: 2),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             'total_score'.tr(),
@@ -150,14 +154,31 @@ class _TimedRaceResultsPageState extends State<TimedRaceResultsPage> {
                 ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 8),
-          Text(
-            totalScore.toString(),
-            style: Theme.of(context).textTheme.displayMedium!.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.green[600],
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Expanded(
+                child: Container(),
+              ),
+              Text(
+                totalScore.toString(),
+                style: Theme.of(context).textTheme.displayMedium!.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green[600],
+                    ),
+                textAlign: TextAlign.center,
+              ),
+              IconButton(
+                icon: Icon(
+                  Icons.info_outline,
+                  color: colors.outline,
+                  size: 16,
                 ),
-            textAlign: TextAlign.center,
+                visualDensity: VisualDensity.compact,
+                tooltip: 'score_formula_tooltip'.tr(),
+                onPressed: () => _showScoreInfoDialog(context, colors),
+              ),
+            ],
           ),
         ],
       ),
@@ -319,6 +340,61 @@ class _TimedRaceResultsPageState extends State<TimedRaceResultsPage> {
         _isLoading = false;
       });
     }
+  }
+
+  // Method to show the score formula info dialog
+  Future<void> _showScoreInfoDialog(BuildContext context, ColorScheme colors) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'score_formula_title'.tr(),
+            style: Theme.of(context).textTheme.displayMedium,
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(height: 1, color: colors.outline),
+                const SizedBox(height: 16),
+                Text(
+                  'score_formula_explanation'.tr(),
+                  style: Theme.of(context).textTheme.displaySmall,
+                ),
+                const SizedBox(height: 32),
+                Text(
+                  'score_formula_example'.tr(),
+                  style: Theme.of(context).textTheme.displaySmall,
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  border: Border.all(color: colors.outline, width: 2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'OK'.tr(),
+                  style: Theme.of(context).textTheme.displayMedium,
+                ),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+            ),
+          ],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+            side: BorderSide(color: colors.outline, width: 2),
+          ),
+        );
+      },
+    );
   }
 
   String _formatTime(int milliseconds) {

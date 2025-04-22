@@ -78,5 +78,8 @@
     "what_are_timed_challenges": "What are timed challenges?",
     "timed_challenges_explanation": "In this screen you can add all the challenges you want.\n\nSelect the time of the challenge and press the + button.\n\nIf the order is wrong you can always drag and drop to reorder them.",
     "challenge_deleted": "Challenge deleted",
-    "no_sections_yet": "No sections added yet"
+    "no_sections_yet": "No sections added yet",
+    "score_formula_title": "Score formula",
+    "score_formula_explanation": "(car year % 100) / 100 + 1",
+    "score_formula_example": "Example:\n1940 % 100 = 40 / 100 + 1 = 1.40"
 }
