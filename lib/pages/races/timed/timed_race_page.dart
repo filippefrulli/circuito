@@ -67,7 +67,14 @@ class _TimedRacePageState extends State<TimedRacePage> {
       return Scaffold(body: Center(child: Text('no_challenges'.tr())));
     }
 
-    return Scaffold(body: body(colors, _section));
+    return Scaffold(
+      body: Stack(
+        children: [
+          body(colors, _section),
+          if (_resultDiffMs != null) _resultPopup(_resultDiffMs!),
+        ],
+      ),
+    );
   }
 
   Widget body(ColorScheme colors, TimedRaceSection section) {
@@ -276,6 +283,50 @@ class _TimedRacePageState extends State<TimedRacePage> {
         : Container();
   }
 
+  Widget _resultPopup(int diffMs) {
+    final isOver = diffMs > 0;
+    final abs = diffMs.abs();
+    final m = abs ~/ (60 * 1000);
+    final s = (abs % (60 * 1000)) ~/ 1000;
+    final ms = abs % 1000;
+    final sign = isOver ? '+' : '-';
+    final timeStr =
+        '$sign${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}.${ms.toString().padLeft(3, '0')}';
+    final color = isOver ? Colors.red[700]! : Colors.green[700]!;
+
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 28),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.85),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: color, width: 3),
+            ),
+            child: Text(
+              timeStr,
+              style: TextStyle(
+                color: color,
+                fontSize: 52,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Raleway',
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showResultFor(int diffMs) {
+    _resultTimer?.cancel();
+    setState(() => _resultDiffMs = diffMs);
+    _resultTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted) setState(() => _resultDiffMs = null);
+    });
+  }
+
   // ── Race logic ─────────────────────────────────────────────────────────────
 
   Future<void> _loadData() async {
@@ -324,15 +375,19 @@ class _TimedRacePageState extends State<TimedRacePage> {
     final actualTime = service.timedElapsedMs - previousChallengesTime;
     final targetTime = _challenges[challengeIdx].completionTime!;
 
+    final timeDifference = actualTime - targetTime;
+
     await DatabaseHelper.instance.insertTimedChallengeResult(
       TimedChallengeResult(
         challengeId: _challenges[challengeIdx].id!,
         completionTime: actualTime,
-        timeDifference: actualTime - targetTime,
+        timeDifference: timeDifference,
         rank: _challenges[challengeIdx].rank!,
         createdAt: DateTime.now().toIso8601String(),
       ),
     );
+
+    _showResultFor(timeDifference);
 
     if (challengeIdx < _challenges.length - 1) {
       service.advanceTimedChallenge();
