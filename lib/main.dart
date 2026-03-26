@@ -3,6 +3,8 @@ import 'package:circuito/pages/circuits_page.dart';
 import 'package:circuito/pages/garage_page.dart';
 import 'package:circuito/pages/home_page.dart';
 import 'package:circuito/pages/settings/language_page.dart';
+import 'package:circuito/utils/navigation.dart';
+import 'package:circuito/widgets/race_timer_banner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:oktoast/oktoast.dart';
@@ -47,6 +49,7 @@ class MyApp extends StatelessWidget {
         localizationsDelegates: context.localizationDelegates,
         supportedLocales: context.supportedLocales,
         locale: context.locale,
+        navigatorKey: appNavigatorKey,
         debugShowCheckedModeBanner: false,
         routes: {
           '/main': (BuildContext context) => const HomePage(),
@@ -56,7 +59,12 @@ class MyApp extends StatelessWidget {
         builder: (context, child) {
           return ScrollConfiguration(
             behavior: MyBehavior(),
-            child: child!,
+            child: Stack(
+              children: [
+                child!,
+                const RaceTimerBanner(),
+              ],
+            ),
           );
         },
         theme: ThemeData(

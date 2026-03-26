@@ -81,5 +81,7 @@
     "no_sections_yet": "No sections added yet",
     "score_formula_title": "Score formula",
     "score_formula_explanation": "(car year % 100) / 100 + 1",
-    "score_formula_example": "Example:\n1940 % 100 = 40 / 100 + 1 = 1.40"
+    "score_formula_example": "Example:\n1940 % 100 = 40 / 100 + 1 = 1.40",
+    "race_in_progress": "Race in progress",
+    "tap_to_return": "Tap to return"
 }

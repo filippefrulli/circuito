@@ -82,5 +82,7 @@
     "no_sections_yet": "Nessuna sezione aggiunta",
     "score_formula_title": "Formula del punteggio",
     "score_formula_explanation": "(anno macchina % 100) / 100 + 1",
-    "score_formula_example": "Esempio:\n1940 % 100 = 40 / 100 + 1 = 1.40"
+    "score_formula_example": "Esempio:\n1940 % 100 = 40 / 100 + 1 = 1.40",
+    "race_in_progress": "Gara in corso",
+    "tap_to_return": "Tocca per tornare"
 }

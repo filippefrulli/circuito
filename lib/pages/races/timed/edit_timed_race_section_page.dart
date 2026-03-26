@@ -21,9 +21,9 @@ class _EditTimedRaceSectionPageState extends State<EditTimedRaceSectionPage> {
   late Future<List<TimedChallenge>> _challengesFuture;
   late Future<TimedRaceSection> _sectionFuture;
 
+  int _newHours = 0;
   int _newMinutes = 0;
   int _newSeconds = 0;
-  int _newMilliseconds = 0;
 
   final TextEditingController _rankController = TextEditingController();
 
@@ -218,11 +218,11 @@ class _EditTimedRaceSectionPageState extends State<EditTimedRaceSectionPage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          _timeUnit(colors, _newHours, 23, (val) => setState(() => _newHours = val), 'h'),
+          Text(':', style: TextStyle(color: colors.primary)),
           _timeUnit(colors, _newMinutes, 59, (val) => setState(() => _newMinutes = val), 'min'),
           Text(':', style: TextStyle(color: colors.primary)),
           _timeUnit(colors, _newSeconds, 59, (val) => setState(() => _newSeconds = val), 'sec'),
-          Text(':', style: TextStyle(color: colors.primary)),
-          _timeUnit(colors, _newMilliseconds, 999, (val) => setState(() => _newMilliseconds = val), 'ms'),
           Expanded(child: Container()),
           plusButton(colors),
         ],
@@ -240,7 +240,7 @@ class _EditTimedRaceSectionPageState extends State<EditTimedRaceSectionPage> {
       ),
       child: IconButton(
         onPressed: () async {
-          final time = (_newMinutes * 60 * 1000) + (_newSeconds * 1000) + _newMilliseconds;
+          final time = (_newHours * 3600 * 1000) + (_newMinutes * 60 * 1000) + (_newSeconds * 1000);
           final challenge = TimedChallenge(
             sectionId: widget.sectionId,
             completionTime: time,
@@ -249,9 +249,9 @@ class _EditTimedRaceSectionPageState extends State<EditTimedRaceSectionPage> {
           setState(() {
             _loadChallenges();
             _rankController.clear();
+            _newHours = 0;
             _newMinutes = 0;
             _newSeconds = 0;
-            _newMilliseconds = 0;
           });
         },
         icon: Icon(Icons.add, color: colors.secondary, size: 32),
@@ -260,10 +260,10 @@ class _EditTimedRaceSectionPageState extends State<EditTimedRaceSectionPage> {
   }
 
   String _formatTime(int milliseconds) {
-    final minutes = milliseconds ~/ (60 * 1000);
+    final hours = milliseconds ~/ (3600 * 1000);
+    final minutes = (milliseconds % (3600 * 1000)) ~/ (60 * 1000);
     final seconds = (milliseconds % (60 * 1000)) ~/ 1000;
-    final ms = milliseconds % 1000;
-    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}.${ms.toString().padLeft(3, '0')}';
+    return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
   Widget _timeUnit(ColorScheme colors, int value, int maxValue, ValueChanged<int> onChanged, String label) {
