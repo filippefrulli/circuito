@@ -57,6 +57,7 @@ class _GaragePageState extends State<GaragePage> {
         PageTitleWidget(
           intro: 'my_sg'.tr(),
           title: 'garage'.tr(),
+          showBackButton: true,
         ),
         Expanded(
           child: Container(),

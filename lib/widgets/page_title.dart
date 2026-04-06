@@ -5,15 +5,30 @@ import 'package:flutter/material.dart';
 class PageTitleWidget extends StatelessWidget {
   final String intro;
   final String title;
+  final bool showBackButton;
 
-  const PageTitleWidget({super.key, required this.intro, required this.title});
+  const PageTitleWidget({
+    super.key,
+    required this.intro,
+    required this.title,
+    this.showBackButton = false,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final topPadding = MediaQuery.of(context).padding.top;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        MediaQuery.of(context).size.height < 670 ? const SizedBox(height: 16) : const SizedBox(height: 64),
+        if (showBackButton) ...[
+          SizedBox(height: topPadding + 4),
+          GestureDetector(
+            onTap: () => Navigator.of(context).pop(),
+            child: const Icon(Icons.chevron_left, size: 32),
+          ),
+          const SizedBox(height: 8),
+        ] else
+          MediaQuery.of(context).size.height < 670 ? const SizedBox(height: 16) : const SizedBox(height: 64),
         Text(
           intro,
           style: Theme.of(context).textTheme.displayMedium,

@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LanguagePage extends StatefulWidget {
-  const LanguagePage({super.key});
+  final bool showBackButton;
+
+  const LanguagePage({super.key, this.showBackButton = false});
 
   @override
   State<LanguagePage> createState() => _LanguagePageState();
@@ -59,6 +61,7 @@ class _LanguagePageState extends State<LanguagePage> {
     return PageTitleWidget(
       intro: '',
       title: 'Select_language'.tr(),
+      showBackButton: widget.showBackButton,
     );
   }
 

@@ -45,7 +45,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const LanguagePage(),
+                    builder: (context) => const LanguagePage(showBackButton: true),
                   ),
                 );
               },
@@ -122,6 +122,7 @@ class _SettingsPageState extends State<SettingsPage> {
         PageTitleWidget(
           intro: '',
           title: 'settings'.tr(),
+          showBackButton: true,
         ),
       ],
     );

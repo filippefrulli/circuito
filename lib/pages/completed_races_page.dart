@@ -46,6 +46,7 @@ class _CompletedRacesPageState extends State<CompletedRacesPage> {
         PageTitleWidget(
           intro: 'your'.tr(),
           title: 'completed_races'.tr(),
+          showBackButton: true,
         ),
       ],
     );

@@ -7,12 +7,27 @@ class PrivacyPolicy extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final topPadding = MediaQuery.of(context).padding.top;
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 64),
-          child: Text(privacyPolicy, style: Theme.of(context).textTheme.displaySmall),
-        ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.only(left: 8, top: topPadding + 4),
+            child: GestureDetector(
+              onTap: () => Navigator.of(context).pop(),
+              child: const Icon(Icons.chevron_left, size: 32),
+            ),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                child: Text(privacyPolicy, style: Theme.of(context).textTheme.displaySmall),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

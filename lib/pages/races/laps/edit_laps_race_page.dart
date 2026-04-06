@@ -102,6 +102,7 @@ class _EditLapsRacePageState extends State<EditLapsRacePage> {
         PageTitleWidget(
           intro: 'laps_race'.tr(),
           title: race.name,
+          showBackButton: true,
         ),
       ],
     );

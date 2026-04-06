@@ -95,6 +95,7 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
         PageTitleWidget(
           intro: 'timed_race'.tr(),
           title: race.name,
+          showBackButton: true,
         ),
         Expanded(
           child: Container(),

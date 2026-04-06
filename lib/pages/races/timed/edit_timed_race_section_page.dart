@@ -88,6 +88,7 @@ class _EditTimedRaceSectionPageState extends State<EditTimedRaceSectionPage> {
         PageTitleWidget(
           intro: 'section'.tr(),
           title: section.name,
+          showBackButton: true,
         ),
       ],
     );

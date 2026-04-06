@@ -56,6 +56,7 @@ class _CircuitsPageState extends State<CircuitsPage> {
         PageTitleWidget(
           intro: 'my_pl'.tr(),
           title: 'circuits'.tr(),
+          showBackButton: true,
         ),
         Expanded(
           child: Container(),

@@ -96,6 +96,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
         PageTitleWidget(
           intro: 'create_new'.tr(),
           title: 'race'.tr(),
+          showBackButton: true,
         ),
       ],
     );
