@@ -38,6 +38,7 @@ class DatabaseHelper {
   static const raceType = 'type';
   static const raceStatus = 'status';
   static const raceCreatedAt = 'created_at';
+  static const raceCoefficient = 'coefficient';
 
   static const raceResultId = 'id';
   static const raceResultRaceId = 'race';
@@ -120,6 +121,7 @@ class DatabaseHelper {
         $raceType INTEGER NOT NULL,
         $raceStatus INTEGER DEFAULT 0,
         $raceCreatedAt TEXT NOT NULL,
+        $raceCoefficient REAL,
         FOREIGN KEY ($raceCarId) REFERENCES $carsTable ($carId)
           ON DELETE CASCADE,
         FOREIGN KEY ($raceCircuitId) REFERENCES $circuitsTable ($circuitId)
@@ -259,6 +261,26 @@ class DatabaseHelper {
     return await db!.delete(
       racesTable,
       where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<void> updateRaceCoefficient(int id, double? coefficient) async {
+    Database? db = await database;
+    await db!.update(
+      racesTable,
+      {raceCoefficient: coefficient},
+      where: '$raceId = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<void> updateRaceName(int id, String name) async {
+    Database? db = await database;
+    await db!.update(
+      racesTable,
+      {raceName: name},
+      where: '$raceId = ?',
       whereArgs: [id],
     );
   }
@@ -499,8 +521,8 @@ class DatabaseHelper {
       final car = Car.fromMap(cars.first);
       final carYear = car.year;
 
-      // Step 4: Calculate coefficient based on car year (year / 100)
-      final coefficient = (carYear % 100) / 100 + 1;
+      // Step 4: Use custom coefficient if set, otherwise calculate from car year
+      final coefficient = race.coefficient ?? ((carYear % 100) / 100 + 1);
 
       // Step 5: Calculate final score
       // Multiply time by 100, then by coefficient

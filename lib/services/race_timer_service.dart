@@ -13,6 +13,9 @@ class RaceTimerService extends ChangeNotifier {
   Timer? _timer;
   bool _racePageVisible = false;
 
+  DateTime? _lapAnchor;    // Wall-clock start of the current lap
+  DateTime? _timedAnchor;  // Wall-clock start of the timed race
+
   ActiveRaceType? raceType;
   int? raceId;
 
@@ -57,6 +60,7 @@ class RaceTimerService extends ChangeNotifier {
     lapIdealTimeMs = idealTimeMs;
     lapCurrent = 1;
     lapCurrentTimeMs = 0;
+    _lapAnchor = DateTime.now();
     racePageBuilder = pageBuilder;
     _startTimer();
     notifyListeners();
@@ -76,6 +80,7 @@ class RaceTimerService extends ChangeNotifier {
     timedElapsedMs = 0;
     timedDisplayIndex = 0;
     timedActualIndex = 0;
+    _timedAnchor = DateTime.now();
     racePageBuilder = pageBuilder;
     _computeTimedDisplay();
     _startTimer();
@@ -86,6 +91,7 @@ class RaceTimerService extends ChangeNotifier {
   void advanceLap() {
     lapCurrent++;
     lapCurrentTimeMs = 0;
+    _lapAnchor = DateTime.now();
     notifyListeners();
   }
 
@@ -115,6 +121,8 @@ class RaceTimerService extends ChangeNotifier {
     raceId = null;
     racePageBuilder = null;
     _racePageVisible = false;
+    _lapAnchor = null;
+    _timedAnchor = null;
     notifyListeners();
   }
 
@@ -145,10 +153,10 @@ class RaceTimerService extends ChangeNotifier {
   }
 
   void _tick() {
-    if (raceType == ActiveRaceType.laps) {
-      lapCurrentTimeMs += 10;
-    } else if (raceType == ActiveRaceType.timed) {
-      timedElapsedMs += 10;
+    if (raceType == ActiveRaceType.laps && _lapAnchor != null) {
+      lapCurrentTimeMs = DateTime.now().difference(_lapAnchor!).inMilliseconds;
+    } else if (raceType == ActiveRaceType.timed && _timedAnchor != null) {
+      timedElapsedMs = DateTime.now().difference(_timedAnchor!).inMilliseconds;
       _computeTimedDisplay();
     }
     notifyListeners();

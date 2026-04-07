@@ -4,7 +4,6 @@ import 'package:circuito/pages/home_page.dart';
 import 'package:circuito/pages/races/timed/edit_timed_race_section_page.dart';
 import 'package:circuito/pages/races/timed/timed_race_results_page.dart';
 import 'package:circuito/utils/database.dart';
-import 'package:circuito/widgets/page_title.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
@@ -24,12 +23,25 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
   late Future<List<TimedRaceSection>> _sectionsFuture;
   late Future<Race> _raceFuture;
   final TextEditingController _sectionNameController = TextEditingController();
+  String? _raceName;
+  double? _coefficient;
+  bool _coefficientInitialized = false;
+  String _coefficientInput = '';
 
   @override
   void initState() {
     super.initState();
     _loadSections();
     _raceFuture = DatabaseHelper.instance.getRaceById(widget.id);
+    _raceFuture.then((race) {
+      if (mounted && !_coefficientInitialized) {
+        setState(() {
+          _coefficient = race.coefficient;
+          _coefficientInput = race.coefficient?.toString() ?? '';
+          _coefficientInitialized = true;
+        });
+      }
+    });
   }
 
   @override
@@ -81,28 +93,197 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
           topBar(colors, race),
           const SizedBox(height: 32),
           sectionsWidget(colors),
+          const SizedBox(height: 24),
+          coefficientWidget(colors, race),
           const SizedBox(height: 32),
-          endRaceButton(colors, race),
+          FutureBuilder<List<TimedRaceSection>>(
+            future: _sectionsFuture,
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) return const SizedBox();
+              final hasCompleted = snapshot.data!.any((s) => s.completed == 1);
+              if (!hasCompleted) return const SizedBox();
+              return endRaceButton(colors, race);
+            },
+          ),
         ],
       ),
     );
   }
 
   Widget topBar(ColorScheme colors, Race race) {
+    final topPadding = MediaQuery.of(context).padding.top;
+    final name = _raceName ?? race.name;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        PageTitleWidget(
-          intro: 'timed_race'.tr(),
-          title: race.name,
-          showBackButton: true,
-        ),
         Expanded(
-          child: Container(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: topPadding + 4),
+              GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                child: const Icon(Icons.chevron_left, size: 32),
+              ),
+              const SizedBox(height: 32),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Text(
+                      name,
+                      style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  GestureDetector(
+                    onTap: () => _showRenameDialog(colors, race),
+                    child: Icon(Icons.edit_outlined, size: 24, color: colors.primary),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  border: Border.all(color: colors.outline),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  'time_trial'.tr(),
+                  style: Theme.of(context).textTheme.labelSmall,
+                ),
+              ),
+            ],
+          ),
         ),
-        deleteButton(colors, race)
+        deleteButton(colors, race),
       ],
     );
+  }
+
+  Widget coefficientWidget(ColorScheme colors, Race race) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'coefficient'.tr(),
+          style: Theme.of(context).textTheme.displayMedium,
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: TextFormField(
+                key: ValueKey(_coefficient),
+                initialValue: _coefficientInput,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                textInputAction: TextInputAction.done,
+                style: Theme.of(context).textTheme.displaySmall,
+                onChanged: (v) => _coefficientInput = v,
+                decoration: InputDecoration(
+                  hintText: 'coefficient_hint'.tr(),
+                  hintStyle: Theme.of(context).textTheme.labelSmall,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: colors.outline),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: colors.primary),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: () => _saveCoefficient(race),
+              child: Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: colors.primary,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(Icons.check, color: colors.onPrimary, size: 28),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Future<void> _saveCoefficient(Race race) async {
+    final parsed = double.tryParse(_coefficientInput.replaceAll(',', '.'));
+    await DatabaseHelper.instance.updateRaceCoefficient(race.id!, parsed);
+    if (!mounted) return;
+    setState(() {
+      _coefficient = parsed;
+      _coefficientInput = parsed?.toString() ?? '';
+      _coefficientInitialized = true;
+    });
+  }
+
+  Future<void> _showRenameDialog(ColorScheme colors, Race race) async {
+    String currentName = _raceName ?? race.name;
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: Text(
+            'rename_race'.tr(),
+            style: Theme.of(context).textTheme.displayMedium,
+          ),
+          content: TextFormField(
+            initialValue: currentName,
+            style: Theme.of(context).textTheme.displaySmall,
+            autofocus: true,
+            onChanged: (v) => currentName = v,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: colors.primary),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text('cancel'.tr(), style: Theme.of(context).textTheme.displaySmall),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                color: colors.primary,
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: TextButton(
+                onPressed: () {
+                  final name = currentName.trim();
+                  if (name.isNotEmpty) Navigator.pop(ctx, name);
+                },
+                child: Text('save'.tr(), style: Theme.of(context).textTheme.bodyMedium),
+              ),
+            ),
+          ],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+            side: BorderSide(color: colors.outline, width: 2),
+          ),
+        );
+      },
+    );
+
+    if (newName == null) return;
+    await DatabaseHelper.instance.updateRaceName(race.id!, newName);
+    if (!mounted) return;
+    setState(() => _raceName = newName);
   }
 
   Widget deleteButton(ColorScheme colors, Race race) {

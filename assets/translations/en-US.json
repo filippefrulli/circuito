@@ -86,5 +86,9 @@
     "score_formula_explanation": "(car year % 100) / 100 + 1",
     "score_formula_example": "Example:\n1940 % 100 = 40 / 100 + 1 = 1.40",
     "race_in_progress": "Race in progress",
-    "tap_to_return": "Tap to return"
+    "tap_to_return": "Tap to return",
+    "save": "Save",
+    "rename_race": "Rename race",
+    "coefficient": "Coefficient",
+    "coefficient_hint": "Auto"
 }

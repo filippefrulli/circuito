@@ -39,43 +39,20 @@ class _CreateRacePageState extends State<CreateRacePage> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Scaffold(
-      body: SingleChildScrollView(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            minHeight: MediaQuery.of(context).size.height -
-                MediaQuery.of(context).padding.top -
-                MediaQuery.of(context).padding.bottom,
-          ),
-          child: body(colors),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            topBar(colors),
+            const SizedBox(height: 32),
+            selectCar(colors),
+            selectCircuit(colors),
+            Expanded(child: Container()),
+            nextButton(colors),
+            const SizedBox(height: 32),
+          ],
         ),
-      ),
-    );
-  }
-
-  Widget body(ColorScheme colors) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              topBar(colors),
-              const SizedBox(height: 32),
-              selectCar(colors),
-              selectCircuit(colors),
-            ],
-          ),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              nextButton(colors),
-              const SizedBox(height: 32),
-            ],
-          ),
-        ],
       ),
     );
   }
@@ -256,7 +233,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
     final isValid = selectedCar != null && selectedCircuit != null;
     return Container(
       height: 60,
-      width: MediaQuery.of(context).size.width - 96,
+      width: double.infinity,
       decoration: BoxDecoration(
         color: isValid ? colors.primary : colors.tertiary,
         borderRadius: BorderRadius.circular(25),

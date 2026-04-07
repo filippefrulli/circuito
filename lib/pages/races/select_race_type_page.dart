@@ -24,6 +24,7 @@ class SelectRaceTypePage extends StatefulWidget {
 
 class _SelectRaceTypePageState extends State<SelectRaceTypePage> {
   bool _isCreating = false;
+  RaceType? _selectedType;
 
   Future<void> _createRace(RaceType type) async {
     if (_isCreating) return;
@@ -65,25 +66,35 @@ class _SelectRaceTypePageState extends State<SelectRaceTypePage> {
         padding: const EdgeInsets.symmetric(horizontal: 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            PageTitleWidget(
-              intro: '',
-              title: 'select_type'.tr(),
-              showBackButton: true,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                PageTitleWidget(
+                  intro: '',
+                  title: 'select_type'.tr(),
+                  showBackButton: true,
+                ),
+                const SizedBox(height: 32),
+                _raceTypeCard(
+                  colors: colors,
+                  title: 'time_trial'.tr(),
+                  description: 'time_trial_description'.tr(),
+                  type: RaceType.timed,
+                ),
+                const SizedBox(height: 16),
+                _raceTypeCard(
+                  colors: colors,
+                  title: 'lap_race'.tr(),
+                  description: 'lap_race_description'.tr(),
+                  type: RaceType.laps,
+                ),
+              ],
             ),
-            const SizedBox(height: 32),
-            _raceTypeCard(
-              colors: colors,
-              title: 'time_trial'.tr(),
-              description: 'time_trial_description'.tr(),
-              type: RaceType.timed,
-            ),
-            const SizedBox(height: 16),
-            _raceTypeCard(
-              colors: colors,
-              title: 'lap_race'.tr(),
-              description: 'lap_race_description'.tr(),
-              type: RaceType.laps,
+            Padding(
+              padding: const EdgeInsets.only(bottom: 32),
+              child: _selectButton(colors),
             ),
           ],
         ),
@@ -97,12 +108,14 @@ class _SelectRaceTypePageState extends State<SelectRaceTypePage> {
     required String description,
     required RaceType type,
   }) {
+    final isSelected = _selectedType == type;
     return GestureDetector(
-      onTap: _isCreating ? null : () => _createRace(type),
+      onTap: _isCreating ? null : () => setState(() => _selectedType = type),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
+          color: isSelected ? colors.primary : null,
           border: Border.all(color: colors.primary, width: 2),
           borderRadius: BorderRadius.circular(20),
         ),
@@ -113,14 +126,38 @@ class _SelectRaceTypePageState extends State<SelectRaceTypePage> {
               title,
               style: Theme.of(context).textTheme.displayMedium?.copyWith(
                     fontWeight: FontWeight.bold,
+                    color: isSelected ? colors.onPrimary : null,
                   ),
             ),
             const SizedBox(height: 12),
             Text(
               description,
-              style: Theme.of(context).textTheme.labelSmall,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: isSelected ? colors.onPrimary : null,
+                  ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _selectButton(ColorScheme colors) {
+    final isEnabled = _selectedType != null && !_isCreating;
+    return SizedBox(
+      height: 60,
+      width: double.infinity,
+      child: Container(
+        decoration: BoxDecoration(
+          color: isEnabled ? colors.primary : colors.tertiary,
+          borderRadius: BorderRadius.circular(25),
+        ),
+        child: TextButton(
+          onPressed: isEnabled ? () => _createRace(_selectedType!) : null,
+          child: Text(
+            'select'.tr(),
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
         ),
       ),
     );

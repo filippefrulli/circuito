@@ -6,6 +6,7 @@ class Race {
   final int type;
   final int status;
   final String createdAt;
+  final double? coefficient;
 
   Race({
     this.id,
@@ -15,6 +16,7 @@ class Race {
     required this.type,
     required this.status,
     required this.createdAt,
+    this.coefficient,
   });
 
   Map<String, dynamic> toMap() {
@@ -26,11 +28,12 @@ class Race {
       'type': type,
       'status': status,
       'created_at': createdAt,
+      'coefficient': coefficient,
     };
   }
 
   factory Race.fromMap(Map<String, dynamic> map) {
-    Race race = Race(
+    return Race(
       id: map['id'],
       name: map['name'],
       car: map['car'],
@@ -38,8 +41,8 @@ class Race {
       type: map['type'],
       status: map['status'],
       createdAt: map['created_at'],
+      coefficient: map['coefficient'] != null ? (map['coefficient'] as num).toDouble() : null,
     );
-    return race;
   }
 }
 
