@@ -7,6 +7,7 @@ import 'package:circuito/pages/races/timed/timed_race_results_page.dart';
 import 'package:circuito/services/race_timer_service.dart';
 import 'package:circuito/utils/database.dart';
 import 'package:circuito/widgets/page_title.dart';
+import 'package:circuito/widgets/race_result_popup.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
@@ -71,7 +72,11 @@ class _TimedRacePageState extends State<TimedRacePage> {
       body: Stack(
         children: [
           body(colors, _section),
-          if (_resultDiffMs != null) _resultPopup(_resultDiffMs!),
+          if (_resultDiffMs != null)
+            RaceResultPopup(
+              primaryText: _formatDiffText(_resultDiffMs!),
+              color: _resultDiffMs! > 0 ? Colors.red[700]! : Colors.green[700]!,
+            ),
         ],
       ),
     );
@@ -283,40 +288,13 @@ class _TimedRacePageState extends State<TimedRacePage> {
         : Container();
   }
 
-  Widget _resultPopup(int diffMs) {
-    final isOver = diffMs > 0;
+  String _formatDiffText(int diffMs) {
     final abs = diffMs.abs();
     final m = abs ~/ (60 * 1000);
     final s = (abs % (60 * 1000)) ~/ 1000;
     final ms = abs % 1000;
-    final sign = isOver ? '+' : '-';
-    final timeStr =
-        '$sign${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}.${ms.toString().padLeft(3, '0')}';
-    final color = isOver ? Colors.red[700]! : Colors.green[700]!;
-
-    return Positioned.fill(
-      child: IgnorePointer(
-        child: Center(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 28),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.85),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: color, width: 3),
-            ),
-            child: Text(
-              timeStr,
-              style: TextStyle(
-                color: color,
-                fontSize: 52,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Raleway',
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+    final sign = diffMs > 0 ? '+' : '-';
+    return '$sign${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}.${ms.toString().padLeft(3, '0')}';
   }
 
   void _showResultFor(int diffMs) {

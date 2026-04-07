@@ -1,8 +1,6 @@
 import 'package:circuito/objects/car.dart';
 import 'package:circuito/objects/circuit.dart';
-import 'package:circuito/objects/race.dart';
-import 'package:circuito/pages/races/timed/edit_timed_race_page.dart';
-import 'package:circuito/pages/races/laps/edit_laps_race_page.dart';
+import 'package:circuito/pages/races/select_race_type_page.dart';
 import 'package:circuito/utils/database.dart';
 import 'package:circuito/widgets/page_title.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -16,30 +14,25 @@ class CreateRacePage extends StatefulWidget {
 }
 
 class _CreateRacePageState extends State<CreateRacePage> {
-  final TextEditingController _nameController = TextEditingController();
-  String _raceName = '';
-
   Car? selectedCar;
   Circuit? selectedCircuit;
-  RaceType? selectedType;
 
-  @override
-  void initState() {
-    super.initState();
-    _nameController.addListener(_onNameChanged);
-  }
+  int _carListVersion = 0;
+  int _circuitListVersion = 0;
+
+  final _carFormKey = GlobalKey<FormState>();
+  final _carNameController = TextEditingController();
+  final _carYearController = TextEditingController();
+
+  final _circuitFormKey = GlobalKey<FormState>();
+  final _circuitNameController = TextEditingController();
 
   @override
   void dispose() {
-    _nameController.removeListener(_onNameChanged);
-    _nameController.dispose();
+    _carNameController.dispose();
+    _carYearController.dispose();
+    _circuitNameController.dispose();
     super.dispose();
-  }
-
-  void _onNameChanged() {
-    setState(() {
-      _raceName = _nameController.text;
-    });
   }
 
   @override
@@ -71,16 +64,14 @@ class _CreateRacePageState extends State<CreateRacePage> {
             children: [
               topBar(colors),
               const SizedBox(height: 32),
-              raceNameInput(colors),
               selectCar(colors),
               selectCircuit(colors),
-              selectType(colors),
             ],
           ),
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              createRaceButton(colors),
+              nextButton(colors),
               const SizedBox(height: 32),
             ],
           ),
@@ -102,83 +93,66 @@ class _CreateRacePageState extends State<CreateRacePage> {
     );
   }
 
-  Widget raceNameInput(ColorScheme colors) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'race_name'.tr(),
-          style: Theme.of(context).textTheme.displaySmall,
-        ),
-        const SizedBox(height: 8),
-        Container(
-          height: 50,
-          decoration: BoxDecoration(
-            border: Border.all(color: colors.outline),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: TextField(
-            controller: _nameController,
-            style: Theme.of(context).textTheme.displaySmall,
-            decoration: InputDecoration(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-              border: InputBorder.none,
-              hintText: 'enter_race_name'.tr(),
-              hintStyle: Theme.of(context).textTheme.labelSmall,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget selectCar(ColorScheme colors) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 32),
         Text(
           'select_car'.tr(),
           style: Theme.of(context).textTheme.displaySmall,
         ),
         const SizedBox(height: 8),
-        FutureBuilder<List<Car>>(
-          future: DatabaseHelper.instance.getCars(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return noItems('no_cars'.tr(), colors);
-            }
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              height: 50,
-              decoration: BoxDecoration(
-                border: Border.all(color: colors.outline),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: DropdownButton<Car>(
-                value: selectedCar,
-                isExpanded: true,
-                hint: Text('select_car'.tr()),
-                menuMaxHeight: 300,
-                borderRadius: BorderRadius.circular(8),
-                style: Theme.of(context).textTheme.displaySmall,
-                icon: Icon(Icons.arrow_drop_down, color: colors.primary),
-                itemHeight: 50,
-                items: snapshot.data!.map((Car car) {
-                  return DropdownMenuItem<Car>(
-                    value: car,
-                    child: Text(car.name),
+        Row(
+          children: [
+            Expanded(
+              child: FutureBuilder<List<Car>>(
+                key: ValueKey(_carListVersion),
+                future: DatabaseHelper.instance.getCars(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return _noItems('no_cars'.tr(), colors);
+                  }
+                  // Keep selected car in sync if the list changed
+                  final cars = snapshot.data!;
+                  if (selectedCar != null &&
+                      !cars.any((c) => c.id == selectedCar!.id)) {
+                    selectedCar = null;
+                  }
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    height: 50,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: colors.outline),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: DropdownButton<Car>(
+                      value: selectedCar,
+                      isExpanded: true,
+                      hint: Text('select_car'.tr()),
+                      menuMaxHeight: 300,
+                      borderRadius: BorderRadius.circular(8),
+                      style: Theme.of(context).textTheme.displaySmall,
+                      icon: Icon(Icons.arrow_drop_down, color: colors.primary),
+                      itemHeight: 50,
+                      items: cars.map((Car car) {
+                        return DropdownMenuItem<Car>(
+                          value: car,
+                          child: Text(car.name),
+                        );
+                      }).toList(),
+                      onChanged: (Car? value) {
+                        setState(() => selectedCar = value);
+                      },
+                    ),
                   );
-                }).toList(),
-                onChanged: (Car? value) {
-                  setState(() {
-                    selectedCar = value;
-                  });
                 },
               ),
-            );
-          },
+            ),
+            const SizedBox(width: 8),
+            _addButton(colors, () => _showAddCarDialog(colors)),
+          ],
         ),
+        const SizedBox(height: 32),
       ],
     );
   }
@@ -187,99 +161,80 @@ class _CreateRacePageState extends State<CreateRacePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 32),
         Text(
           'select_circuit'.tr(),
           style: Theme.of(context).textTheme.displaySmall,
         ),
         const SizedBox(height: 8),
-        FutureBuilder<List<Circuit>>(
-          future: DatabaseHelper.instance.getCircuits(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return noItems('no_circuits'.tr(), colors);
-            }
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              height: 50,
-              decoration: BoxDecoration(
-                border: Border.all(color: colors.outline),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: DropdownButton<Circuit>(
-                value: selectedCircuit,
-                isExpanded: true,
-                hint: Text('select_circuit'.tr()),
-                menuMaxHeight: 300,
-                borderRadius: BorderRadius.circular(8),
-                style: Theme.of(context).textTheme.displaySmall,
-                icon: Icon(Icons.arrow_drop_down, color: colors.primary),
-                itemHeight: 50,
-                items: snapshot.data!.map((Circuit circuit) {
-                  return DropdownMenuItem<Circuit>(
-                    value: circuit,
-                    child: Text(circuit.name),
-                  );
-                }).toList(),
-                onChanged: (Circuit? value) {
-                  setState(
-                    () {
-                      selectedCircuit = value;
-                    },
+        Row(
+          children: [
+            Expanded(
+              child: FutureBuilder<List<Circuit>>(
+                key: ValueKey(_circuitListVersion),
+                future: DatabaseHelper.instance.getCircuits(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return _noItems('no_circuits'.tr(), colors);
+                  }
+                  final circuits = snapshot.data!;
+                  if (selectedCircuit != null &&
+                      !circuits.any((c) => c.id == selectedCircuit!.id)) {
+                    selectedCircuit = null;
+                  }
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    height: 50,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: colors.outline),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: DropdownButton<Circuit>(
+                      value: selectedCircuit,
+                      isExpanded: true,
+                      hint: Text('select_circuit'.tr()),
+                      menuMaxHeight: 300,
+                      borderRadius: BorderRadius.circular(8),
+                      style: Theme.of(context).textTheme.displaySmall,
+                      icon: Icon(Icons.arrow_drop_down, color: colors.primary),
+                      itemHeight: 50,
+                      items: circuits.map((Circuit circuit) {
+                        return DropdownMenuItem<Circuit>(
+                          value: circuit,
+                          child: Text(circuit.name),
+                        );
+                      }).toList(),
+                      onChanged: (Circuit? value) {
+                        setState(() => selectedCircuit = value);
+                      },
+                    ),
                   );
                 },
               ),
-            );
-          },
+            ),
+            const SizedBox(width: 8),
+            _addButton(colors, () => _showAddCircuitDialog(colors)),
+          ],
         ),
       ],
     );
   }
 
-  Widget selectType(ColorScheme colors) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 32),
-        Text(
-          'select_type'.tr(),
-          style: Theme.of(context).textTheme.displaySmall,
+  Widget _addButton(ColorScheme colors, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 50,
+        height: 50,
+        decoration: BoxDecoration(
+          color: colors.primary,
+          borderRadius: BorderRadius.circular(8),
         ),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          height: 50,
-          decoration: BoxDecoration(
-            border: Border.all(color: colors.outline),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: DropdownButton<RaceType>(
-            value: selectedType,
-            isExpanded: true,
-            hint: Text('select_type'.tr()),
-            menuMaxHeight: 300,
-            borderRadius: BorderRadius.circular(8),
-            style: Theme.of(context).textTheme.displaySmall,
-            icon: Icon(Icons.arrow_drop_down, color: colors.primary),
-            itemHeight: 50,
-            items: RaceType.values.map((RaceType type) {
-              return DropdownMenuItem<RaceType>(
-                value: type,
-                child: Text(type.display.tr()),
-              );
-            }).toList(),
-            onChanged: (RaceType? value) {
-              setState(() {
-                selectedType = value;
-              });
-            },
-          ),
-        ),
-      ],
+        child: Icon(Icons.add, color: colors.onPrimary, size: 28),
+      ),
     );
   }
 
-  Widget noItems(String text, ColorScheme colors) {
+  Widget _noItems(String text, ColorScheme colors) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       height: 50,
@@ -289,7 +244,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
       ),
       child: Center(
         child: Text(
-          'no_cars'.tr(),
+          text,
           style: Theme.of(context).textTheme.labelSmall,
           textAlign: TextAlign.center,
         ),
@@ -297,63 +252,212 @@ class _CreateRacePageState extends State<CreateRacePage> {
     );
   }
 
-  Widget createRaceButton(ColorScheme colors) {
+  Widget nextButton(ColorScheme colors) {
+    final isValid = selectedCar != null && selectedCircuit != null;
     return Container(
       height: 60,
       width: MediaQuery.of(context).size.width - 96,
       decoration: BoxDecoration(
-        color: isFormValid() ? colors.primary : colors.tertiary,
+        color: isValid ? colors.primary : colors.tertiary,
         borderRadius: BorderRadius.circular(25),
       ),
       child: TextButton(
-        onPressed: () async {
-          if (isFormValid()) {
-            try {
-              final race = Race(
-                name: _nameController.text,
-                car: selectedCar!.id!,
-                circuit: selectedCircuit!.id!,
-                type: selectedType!.id,
-                status: 0,
-                createdAt: DateTime.now().toIso8601String(),
-              );
-
-              final id = await DatabaseHelper.instance.insertRace(race);
-              if (mounted) {
-                if (selectedType == RaceType.timed) {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => EditTimedRacePage(id: id),
+        onPressed: isValid
+            ? () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SelectRaceTypePage(
+                      car: selectedCar!,
+                      circuit: selectedCircuit!,
                     ),
-                  );
-                } else {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => EditLapsRacePage(id: id),
-                    ),
-                  );
-                }
-              }
-            } catch (e) {
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error creating race: $e')),
+                  ),
                 );
               }
-            }
-          }
-        },
+            : null,
         child: Text(
-          "create_race".tr(),
+          'next'.tr(),
           style: Theme.of(context).textTheme.bodyMedium,
         ),
       ),
     );
   }
 
-  bool isFormValid() {
-    return _raceName.isNotEmpty && selectedCar != null && selectedCircuit != null && selectedType != null;
+  Future<void> _showAddCarDialog(ColorScheme colors) async {
+    await showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: Text(
+            'add_car'.tr(),
+            style: Theme.of(context).textTheme.displayMedium,
+          ),
+          content: Form(
+            key: _carFormKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: _carNameController,
+                  decoration: InputDecoration(
+                    labelText: 'Car Name',
+                    labelStyle: Theme.of(context).textTheme.labelSmall,
+                  ),
+                  style: Theme.of(context).textTheme.displayMedium,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter car name';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: _carYearController,
+                  decoration: InputDecoration(
+                    labelText: 'Year',
+                    labelStyle: Theme.of(context).textTheme.labelSmall,
+                  ),
+                  style: Theme.of(context).textTheme.displayMedium,
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter year';
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                _carNameController.clear();
+                _carYearController.clear();
+                Navigator.pop(ctx);
+              },
+              child: Text(
+                'Cancel',
+                style: Theme.of(context).textTheme.displayMedium,
+              ),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                color: colors.primary,
+                borderRadius: BorderRadius.circular(15),
+              ),
+              width: 80,
+              child: TextButton(
+                onPressed: () async {
+                  if (_carFormKey.currentState!.validate()) {
+                    final car = Car(
+                      name: _carNameController.text,
+                      year: int.parse(_carYearController.text),
+                      image: 'assets/images/porsche.png',
+                    );
+                    final id = await DatabaseHelper.instance.insertCar(car);
+                    _carNameController.clear();
+                    _carYearController.clear();
+                    Navigator.pop(ctx);
+                    setState(() {
+                      _carListVersion++;
+                      selectedCar = Car(
+                        id: id,
+                        name: car.name,
+                        year: car.year,
+                        image: car.image,
+                      );
+                    });
+                  }
+                },
+                child: Text(
+                  'Save',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showAddCircuitDialog(ColorScheme colors) async {
+    await showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: Text(
+            'add_circuit'.tr(),
+            style: Theme.of(context).textTheme.displayMedium,
+          ),
+          content: Form(
+            key: _circuitFormKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: _circuitNameController,
+                  decoration: InputDecoration(
+                    labelText: 'Circuit Name',
+                    labelStyle: Theme.of(context).textTheme.labelSmall,
+                  ),
+                  style: Theme.of(context).textTheme.displayMedium,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter the circuit name';
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                _circuitNameController.clear();
+                Navigator.pop(ctx);
+              },
+              child: Text(
+                'Cancel',
+                style: Theme.of(context).textTheme.displayMedium,
+              ),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                color: colors.primary,
+                borderRadius: BorderRadius.circular(15),
+              ),
+              width: 80,
+              child: TextButton(
+                onPressed: () async {
+                  if (_circuitFormKey.currentState!.validate()) {
+                    final circuit = Circuit(
+                      name: _circuitNameController.text,
+                    );
+                    final id =
+                        await DatabaseHelper.instance.insertCircuit(circuit);
+                    _circuitNameController.clear();
+                    Navigator.pop(ctx);
+                    setState(() {
+                      _circuitListVersion++;
+                      selectedCircuit = Circuit(
+                        id: id,
+                        name: circuit.name,
+                      );
+                    });
+                  }
+                },
+                child: Text(
+                  'Save',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

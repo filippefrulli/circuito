@@ -21,9 +21,8 @@ class RaceTimerService extends ChangeNotifier {
 
   // ── Laps race state ───────────────────────────────────────────────────────
   int lapCurrentTimeMs = 0;
-  int lapInitialTimeMs = 0;
+  int lapIdealTimeMs = 0;
   int lapCurrent = 1;
-  int lapTotal = 0;
 
   // ── Timed race state ──────────────────────────────────────────────────────
   int timedElapsedMs = 0;
@@ -49,17 +48,15 @@ class RaceTimerService extends ChangeNotifier {
 
   void startLapsRace({
     required int raceId,
-    required int initialTimeMs,
-    required int totalLaps,
+    required int idealTimeMs,
     required WidgetBuilder pageBuilder,
   }) {
     _stopTimer();
     raceType = ActiveRaceType.laps;
     this.raceId = raceId;
-    lapInitialTimeMs = initialTimeMs;
-    lapTotal = totalLaps;
+    lapIdealTimeMs = idealTimeMs;
     lapCurrent = 1;
-    lapCurrentTimeMs = initialTimeMs;
+    lapCurrentTimeMs = 0;
     racePageBuilder = pageBuilder;
     _startTimer();
     notifyListeners();
@@ -85,10 +82,10 @@ class RaceTimerService extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Called by LapsRacePage when a lap completes (not the final lap).
+  /// Called by LapsRacePage when a lap completes.
   void advanceLap() {
     lapCurrent++;
-    lapCurrentTimeMs = lapInitialTimeMs;
+    lapCurrentTimeMs = 0;
     notifyListeners();
   }
 
@@ -129,7 +126,7 @@ class RaceTimerService extends ChangeNotifier {
   }
 
   String get displayLabel {
-    if (raceType == ActiveRaceType.laps) return 'Lap $lapCurrent/$lapTotal';
+    if (raceType == ActiveRaceType.laps) return 'Lap $lapCurrent';
     if (raceType == ActiveRaceType.timed) {
       return 'Challenge ${timedDisplayIndex + 1}/${timedChallenges.length}';
     }
@@ -149,7 +146,7 @@ class RaceTimerService extends ChangeNotifier {
 
   void _tick() {
     if (raceType == ActiveRaceType.laps) {
-      lapCurrentTimeMs -= 10;
+      lapCurrentTimeMs += 10;
     } else if (raceType == ActiveRaceType.timed) {
       timedElapsedMs += 10;
       _computeTimedDisplay();

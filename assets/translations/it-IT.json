@@ -19,8 +19,7 @@
     "select_circuit": "Seleziona un circuito",
     "select_type": "Seleziona un tipo di gara",
     "timed_race": "Prove concatenate:",
-    "number_of_laps": "Seleziona il numero di giri",
-    "lap_time": "Seleziona il tempo per giro",
+    "ideal_lap_time": "Tempo giro ideale (opzionale)",
     "ready_for_race": "Vai alla gara",
     "ready": "Pronta",
     "lap_completed": "Giro completato",
@@ -84,5 +83,9 @@
     "score_formula_explanation": "(anno macchina % 100) / 100 + 1",
     "score_formula_example": "Esempio:\n1940 % 100 = 40 / 100 + 1 = 1.40",
     "race_in_progress": "Gara in corso",
-    "tap_to_return": "Tocca per tornare"
+    "tap_to_return": "Tocca per tornare",
+    "next": "Avanti",
+    "no_circuits": "Nessun circuito aggiunto",
+    "time_trial_description": "Gara divisa in sezioni con prove cronometrate ordinate. Ferma il timer quando ogni prova è completata e accumula il tuo punteggio.",
+    "lap_race_description": "Timer a giro libero che si azzera dopo ogni giro. Imposta opzionalmente un tempo ideale per confrontarti."
 }

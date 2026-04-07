@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:circuito/objects/lap_result.dart';
 import 'package:circuito/objects/race.dart';
 import 'package:circuito/pages/home_page.dart';
@@ -5,6 +7,10 @@ import 'package:circuito/utils/database.dart';
 import 'package:circuito/widgets/page_title.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+
+const _f1Purple = Color(0xFF9B00FF);
+const _f1Green = Color(0xFF00C800);
+const _f1Red = Color(0xFFE8002D);
 
 class LapsRaceResultsPage extends StatefulWidget {
   final int raceId;
@@ -142,16 +148,37 @@ class _LapsRaceResultsPageState extends State<LapsRaceResultsPage> {
             return const Center(child: CircularProgressIndicator());
           }
 
+          final laps = snapshot.data!;
+          final fastestTime = laps.isEmpty
+              ? 0
+              : laps.map((l) => l.completionTime).reduce(min);
+
           return ListView.builder(
             padding: EdgeInsets.zero,
-            itemCount: snapshot.data!.length,
+            itemCount: laps.length,
             itemBuilder: (context, index) {
-              final lap = snapshot.data![index];
+              final lap = laps[index];
+              final isFastest = lap.completionTime == fastestTime;
+              final Color lapTimeColor = isFastest ? _f1Purple : colors.onSurface;
+              final Color deltaColor;
+              if (isFastest) {
+                deltaColor = _f1Purple;
+              } else if (lap.timeDifference < 0) {
+                deltaColor = _f1Green;
+              } else if (lap.timeDifference > 0) {
+                deltaColor = _f1Red;
+              } else {
+                deltaColor = colors.onSurface;
+              }
+
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 decoration: BoxDecoration(
-                  border: Border.all(color: colors.outline, width: 2),
+                  border: Border.all(
+                    color: isFastest ? _f1Purple : colors.outline,
+                    width: isFastest ? 2 : 2,
+                  ),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -159,22 +186,29 @@ class _LapsRaceResultsPageState extends State<LapsRaceResultsPage> {
                   children: [
                     Text(
                       'Lap ${lap.lapNumber}',
-                      style: Theme.of(context).textTheme.displayMedium,
+                      style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                            color: lapTimeColor,
+                          ),
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
                           _formatTime(lap.completionTime),
-                          style: Theme.of(context).textTheme.displayMedium,
+                          style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                                color: lapTimeColor,
+                              ),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _formatTimeDifference(lap.timeDifference),
-                          style: TextStyle(
-                            color: lap.timeDifference > 0 ? colors.error : Colors.green[600],
+                        if (lap.timeDifference != 0) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            _formatTimeDifference(lap.timeDifference),
+                            style: TextStyle(
+                              color: deltaColor,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
+                        ],
                       ],
                     ),
                   ],

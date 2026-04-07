@@ -1,24 +1,40 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:circuito/objects/lap_result.dart';
 import 'package:circuito/pages/races/laps/laps_race_results_page.dart';
 import 'package:circuito/services/race_timer_service.dart';
 import 'package:circuito/utils/database.dart';
 import 'package:circuito/widgets/page_title.dart';
+import 'package:circuito/widgets/race_result_popup.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
+const _f1Purple = Color(0xFF9B00FF);
+const _f1Green = Color(0xFF00C800);
+const _f1Red = Color(0xFFE8002D);
+
+class _LapDelta {
+  final int lapTimeMs;
+  final int? diffVsPrevMs;   // null if first lap
+  final int? diffVsIdealMs;  // null if no ideal time set
+  final Color color;
+
+  _LapDelta({
+    required this.lapTimeMs,
+    required this.diffVsPrevMs,
+    required this.diffVsIdealMs,
+    required this.color,
+  });
+}
+
 class LapsRacePage extends StatefulWidget {
-  final int laps;
-  final int minutes;
-  final int seconds;
-  final int milliseconds;
+  final int idealTimeMs;
   final int raceId;
 
   const LapsRacePage({
     super.key,
-    required this.laps,
-    required this.minutes,
-    required this.seconds,
-    required this.milliseconds,
+    required this.idealTimeMs,
     required this.raceId,
   });
 
@@ -28,7 +44,11 @@ class LapsRacePage extends StatefulWidget {
 
 class _LapsRacePageState extends State<LapsRacePage> {
   bool started = false;
-  bool isEnded = false;
+
+  int _fastestLapMs = 0;
+  int _previousLapTimeMs = 0;
+  _LapDelta? _currentDelta;
+  Timer? _deltaTimer;
 
   @override
   void initState() {
@@ -43,21 +63,18 @@ class _LapsRacePageState extends State<LapsRacePage> {
     if (isReconnecting) {
       started = true;
       service.setRacePageVisible(true);
-      // Refresh the page builder so the banner points to this instance.
       service.racePageBuilder = (ctx) => LapsRacePage(
-            laps: widget.laps,
-            minutes: widget.minutes,
-            seconds: widget.seconds,
-            milliseconds: widget.milliseconds,
+            idealTimeMs: widget.idealTimeMs,
             raceId: widget.raceId,
           );
+      _loadStateFromDb();
     }
   }
 
   @override
   void dispose() {
+    _deltaTimer?.cancel();
     RaceTimerService.instance.removeListener(_onServiceUpdate);
-    // Let the timer keep running; only hide the overlay flag.
     RaceTimerService.instance.setRacePageVisible(false);
     super.dispose();
   }
@@ -66,43 +83,77 @@ class _LapsRacePageState extends State<LapsRacePage> {
     if (mounted) setState(() {});
   }
 
+  Future<void> _loadStateFromDb() async {
+    final lapResults = await DatabaseHelper.instance.getLapResultsByRaceId(widget.raceId);
+    if (lapResults.isEmpty || !mounted) return;
+    setState(() {
+      _fastestLapMs = lapResults.map((l) => l.completionTime).reduce(min);
+      _previousLapTimeMs = lapResults.last.completionTime;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Scaffold(
-      body: body(colors),
-    );
-  }
-
-  Widget body(ColorScheme colors) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Column(
+      body: Stack(
         children: [
-          topBar(colors),
-          const SizedBox(height: 64),
-          timerSection(colors),
-          Expanded(child: Container()),
-          lapCompletedButton(colors),
-          startRaceButton(colors),
-          endRaceButton(colors),
-          const SizedBox(height: 32),
+          body(colors),
+          if (_currentDelta != null)
+            RaceResultPopup(
+              primaryText: _formatTime(_currentDelta!.lapTimeMs),
+              subtitle: _currentDelta!.diffVsPrevMs != null
+                  ? _formatTimeDifference(_currentDelta!.diffVsPrevMs!)
+                  : (_currentDelta!.diffVsIdealMs != null
+                      ? _formatTimeDifference(_currentDelta!.diffVsIdealMs!)
+                      : null),
+              tertiaryText: _currentDelta!.diffVsPrevMs != null &&
+                      _currentDelta!.diffVsIdealMs != null
+                  ? 'ideal: ${_formatTimeDifference(_currentDelta!.diffVsIdealMs!)}'
+                  : null,
+              color: _currentDelta!.color,
+            ),
         ],
       ),
     );
   }
 
+  Widget body(ColorScheme colors) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: started ? Colors.green[800]! : Colors.white,
+          width: 12,
+        ),
+        borderRadius: BorderRadius.circular(55),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          children: [
+            topBar(colors),
+            const SizedBox(height: 64),
+            timerSection(colors),
+            Expanded(child: Container()),
+            lapCompletedButton(colors),
+            endRaceButton(colors),
+            startRaceButton(colors),
+            const SizedBox(height: 32),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget topBar(ColorScheme colors) {
+    final service = RaceTimerService.instance;
+    final lapNumber = started ? service.lapCurrent : 1;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         PageTitleWidget(
-          intro: 'timed_race'.tr(),
-          title: isEnded
-              ? 'completed'.tr()
-              : started
-                  ? 'in_progress'.tr()
-                  : 'ready'.tr(),
+          intro: 'laps_race'.tr(),
+          title: '${'lap'.tr()} $lapNumber',
         ),
       ],
     );
@@ -110,25 +161,14 @@ class _LapsRacePageState extends State<LapsRacePage> {
 
   Widget timerSection(ColorScheme colors) {
     final service = RaceTimerService.instance;
-    final ms = started ? service.lapCurrentTimeMs : _initialTimeMs;
-    final isNegative = ms < 0;
-    final abs = ms.abs();
-    final minutes = abs ~/ (60 * 1000);
-    final seconds = (abs % (60 * 1000)) ~/ 1000;
-    final milliseconds = abs % 1000;
+    final ms = started ? service.lapCurrentTimeMs : 0;
+    final minutes = ms ~/ (60 * 1000);
+    final seconds = (ms % (60 * 1000)) ~/ 1000;
+    final milliseconds = ms % 1000;
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(
-          '${'lap'.tr()} ${started ? service.lapCurrent : 1} / ${widget.laps}',
-          style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                color: colors.primary,
-                fontWeight: FontWeight.bold,
-                fontSize: 32,
-              ),
-        ),
-        const SizedBox(height: 32),
         Container(
           padding: const EdgeInsets.all(64),
           decoration: BoxDecoration(
@@ -141,23 +181,23 @@ class _LapsRacePageState extends State<LapsRacePage> {
           child: Column(
             children: [
               Text(
-                '${isNegative ? '-' : ''}${minutes.abs().toString().padLeft(2, '0')}:',
+                '${minutes.toString().padLeft(2, '0')}:',
                 style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                      color: isNegative ? colors.error : colors.onSurface,
+                      color: colors.onSurface,
                       fontSize: 70,
                     ),
               ),
               Text(
                 '${seconds.toString().padLeft(2, '0')}.',
                 style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                      color: isNegative ? colors.error : colors.onSurface,
+                      color: colors.onSurface,
                       fontSize: 70,
                     ),
               ),
               Text(
                 milliseconds.toString().padLeft(3, '0'),
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: isNegative ? colors.error : colors.onSurface,
+                      color: colors.onSurface,
                       fontSize: 35,
                     ),
               ),
@@ -169,112 +209,156 @@ class _LapsRacePageState extends State<LapsRacePage> {
   }
 
   Widget lapCompletedButton(ColorScheme colors) {
-    return started && !isEnded
-        ? Container(
-            height: 60,
-            width: MediaQuery.of(context).size.width - 96,
-            decoration: BoxDecoration(
-              color: colors.primary,
-              borderRadius: BorderRadius.circular(25),
-            ),
-            child: TextButton(
-              onPressed: _onLapComplete,
-              child: Text(
-                'lap_completed'.tr(),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: colors.onPrimary,
-                    ),
-              ),
-            ),
-          )
-        : Container();
-  }
-
-  Widget startRaceButton(ColorScheme colors) {
-    return started
-        ? Container()
-        : Container(
-            height: 60,
-            width: MediaQuery.of(context).size.width - 96,
-            decoration: BoxDecoration(
-              color: colors.primary,
-              borderRadius: BorderRadius.circular(25),
-            ),
-            child: TextButton(
-              onPressed: () {
-                setState(() {
-                  started = true;
-                  _startRace();
-                });
-              },
-              child: Text(
-                'start_race'.tr(),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: colors.onPrimary,
-                    ),
-              ),
-            ),
-          );
+    if (!started) return const SizedBox();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Container(
+        height: 60,
+        width: MediaQuery.of(context).size.width - 96,
+        decoration: BoxDecoration(
+          color: colors.primary,
+          borderRadius: BorderRadius.circular(25),
+        ),
+        child: TextButton(
+          onPressed: _onLapComplete,
+          child: Text(
+            'lap_completed'.tr(),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colors.onPrimary,
+                ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget endRaceButton(ColorScheme colors) {
-    return isEnded
-        ? Container(
-            height: 60,
-            width: MediaQuery.of(context).size.width - 96,
-            decoration: BoxDecoration(
-              color: colors.primary,
-              borderRadius: BorderRadius.circular(25),
-            ),
-            child: TextButton(
-              onPressed: () async {
-                final averageTime = await calculateAverageTime();
-                final fastestLapTime = await calculateFastestLapTime();
-                await DatabaseHelper.instance.endRace(widget.raceId);
-                await DatabaseHelper.instance.insertRaceResult(
-                  widget.raceId,
-                  averageTime,
-                  fastestLapTime,
-                  null,
-                  null,
-                );
-                RaceTimerService.instance.clearRace();
-                if (mounted) {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          LapsRaceResultsPage(raceId: widget.raceId),
-                    ),
-                  );
-                }
-              },
-              child: Text(
-                'end_race'.tr(),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: colors.onPrimary,
-                    ),
-              ),
-            ),
-          )
-        : Container();
+    if (!started) return const SizedBox();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Container(
+        height: 60,
+        width: MediaQuery.of(context).size.width - 96,
+        decoration: BoxDecoration(
+          color: colors.error,
+          borderRadius: BorderRadius.circular(25),
+        ),
+        child: TextButton(
+          onPressed: () => _showEndRaceConfirmation(colors),
+          child: Text(
+            'end_race'.tr(),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.white,
+                ),
+          ),
+        ),
+      ),
+    );
   }
 
-  // ── Race logic ─────────────────────────────────────────────────────────────
+  Future<void> _showEndRaceConfirmation(ColorScheme colors) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+            side: BorderSide(color: colors.outline, width: 2),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'end_race_confirmation'.tr(),
+                  style: Theme.of(context).textTheme.displayMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        height: 50,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: colors.outline, width: 2),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text(
+                            'cancel'.tr(),
+                            style: Theme.of(context).textTheme.displaySmall,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Container(
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: colors.error,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            _onEndRace();
+                          },
+                          child: Text(
+                            'end_race'.tr(),
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: Colors.white,
+                                ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
-  int get _initialTimeMs =>
-      (widget.minutes * 60 * 1000) + (widget.seconds * 1000) + widget.milliseconds;
+  Widget startRaceButton(ColorScheme colors) {
+    if (started) return const SizedBox();
+    return Container(
+      height: 60,
+      width: MediaQuery.of(context).size.width - 96,
+      decoration: BoxDecoration(
+        color: colors.primary,
+        borderRadius: BorderRadius.circular(25),
+      ),
+      child: TextButton(
+        onPressed: () => setState(() {
+          started = true;
+          _startRace();
+        }),
+        child: Text(
+          'start_race'.tr(),
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: colors.onPrimary,
+              ),
+        ),
+      ),
+    );
+  }
+
+  // ── Race logic ──────────────────────────────────────────────────────────────
 
   void _startRace() {
     final service = RaceTimerService.instance;
     service.startLapsRace(
       raceId: widget.raceId,
-      initialTimeMs: _initialTimeMs,
-      totalLaps: widget.laps,
+      idealTimeMs: widget.idealTimeMs,
       pageBuilder: (ctx) => LapsRacePage(
-        laps: widget.laps,
-        minutes: widget.minutes,
-        seconds: widget.seconds,
-        milliseconds: widget.milliseconds,
+        idealTimeMs: widget.idealTimeMs,
         raceId: widget.raceId,
       ),
     );
@@ -283,9 +367,42 @@ class _LapsRacePageState extends State<LapsRacePage> {
 
   void _onLapComplete() {
     final service = RaceTimerService.instance;
-    final completionTime = service.lapInitialTimeMs - service.lapCurrentTimeMs;
-    final timeDifference = -service.lapCurrentTimeMs;
+    final completionTime = service.lapCurrentTimeMs;
 
+    // Compute each diff independently
+    final int? diffVsPrev =
+        _previousLapTimeMs > 0 ? completionTime - _previousLapTimeMs : null;
+    final int? diffVsIdeal =
+        widget.idealTimeMs > 0 ? completionTime - widget.idealTimeMs : null;
+
+    // Color is driven by vs-prev when available, falling back to vs-ideal
+    final int? primaryDiff = diffVsPrev ?? diffVsIdeal;
+    final isFastest = _fastestLapMs == 0 || completionTime < _fastestLapMs;
+    final Color deltaColor;
+    if (isFastest) {
+      deltaColor = _f1Purple;
+      _fastestLapMs = completionTime;
+    } else if (primaryDiff != null && primaryDiff < 0) {
+      deltaColor = _f1Green;
+    } else {
+      deltaColor = _f1Red;
+    }
+
+    setState(() {
+      _currentDelta = _LapDelta(
+        lapTimeMs: completionTime,
+        diffVsPrevMs: diffVsPrev,
+        diffVsIdealMs: diffVsIdeal,
+        color: deltaColor,
+      );
+    });
+    _deltaTimer?.cancel();
+    _deltaTimer = Timer(const Duration(seconds: 2), () {
+      if (mounted) setState(() => _currentDelta = null);
+    });
+
+    // Persist: store vs-ideal if set, else vs-prev, else 0
+    final int timeDifference = diffVsIdeal ?? diffVsPrev ?? 0;
     DatabaseHelper.instance.insertLapResult(
       LapResult(
         raceId: widget.raceId,
@@ -296,29 +413,50 @@ class _LapsRacePageState extends State<LapsRacePage> {
       ),
     );
 
-    if (service.lapCurrent < widget.laps) {
-      service.advanceLap();
+    _previousLapTimeMs = completionTime;
+    service.advanceLap();
+  }
+
+  Future<void> _onEndRace() async {
+    RaceTimerService.instance.stopLapsTimer();
+    final lapResults = await DatabaseHelper.instance.getLapResultsByRaceId(widget.raceId);
+    final int averageTime;
+    final int fastestTime;
+    if (lapResults.isEmpty) {
+      averageTime = 0;
+      fastestTime = 0;
     } else {
-      service.stopLapsTimer();
-      setState(() => isEnded = true);
+      final total = lapResults.fold(0, (sum, l) => sum + l.completionTime);
+      averageTime = total ~/ lapResults.length;
+      fastestTime = lapResults.map((l) => l.completionTime).reduce(min);
+    }
+    await DatabaseHelper.instance.endRace(widget.raceId);
+    await DatabaseHelper.instance.insertRaceResult(
+      widget.raceId,
+      fastestTime,
+      averageTime,
+      null,
+      null,
+    );
+    RaceTimerService.instance.clearRace();
+    if (mounted) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => LapsRaceResultsPage(raceId: widget.raceId),
+        ),
+      );
     }
   }
 
-  Future<int> calculateAverageTime() async {
-    final lapResults =
-        await DatabaseHelper.instance.getLapResultsByRaceId(widget.raceId);
-    if (lapResults.isEmpty) return 0;
-    final total =
-        lapResults.fold(0, (sum, lap) => sum + lap.completionTime);
-    return total ~/ lapResults.length;
+  String _formatTime(int milliseconds) {
+    final minutes = milliseconds ~/ (60 * 1000);
+    final seconds = (milliseconds % (60 * 1000)) ~/ 1000;
+    final ms = milliseconds % 1000;
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}.${ms.toString().padLeft(3, '0')}';
   }
 
-  Future<int> calculateFastestLapTime() async {
-    final lapResults =
-        await DatabaseHelper.instance.getLapResultsByRaceId(widget.raceId);
-    if (lapResults.isEmpty) return 0;
-    return lapResults
-        .map((l) => l.completionTime)
-        .reduce((a, b) => a < b ? a : b);
+  String _formatTimeDifference(int milliseconds) {
+    final isNegative = milliseconds < 0;
+    return '${isNegative ? '-' : '+'}${_formatTime(milliseconds.abs())}';
   }
 }

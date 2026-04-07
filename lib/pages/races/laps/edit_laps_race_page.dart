@@ -1,4 +1,5 @@
 import 'package:circuito/objects/race.dart';
+import 'package:circuito/pages/home_page.dart';
 import 'package:circuito/pages/races/laps/laps_race_page.dart';
 import 'package:circuito/utils/database.dart';
 import 'package:circuito/widgets/page_title.dart';
@@ -20,7 +21,6 @@ class EditLapsRacePage extends StatefulWidget {
 
 class _EditLapsRacePageState extends State<EditLapsRacePage> {
   late Future<Race> _raceFuture;
-  int _laps = 10;
 
   int _minutes = 0;
   int _seconds = 0;
@@ -76,20 +76,13 @@ class _EditLapsRacePageState extends State<EditLapsRacePage> {
           topBar(colors, race),
           const SizedBox(height: 64),
           Text(
-            'number_of_laps'.tr(),
-            style: Theme.of(context).textTheme.displayMedium,
-          ),
-          const SizedBox(height: 32),
-          numberOfLaps(colors),
-          const SizedBox(height: 64),
-          Text(
-            'lap_time'.tr(),
+            'ideal_lap_time'.tr(),
             style: Theme.of(context).textTheme.displayMedium,
           ),
           const SizedBox(height: 16),
           timeInputSection(colors),
           Expanded(child: Container()),
-          startRaceButton(colors, _laps, _minutes, _seconds, _milliseconds),
+          startRaceButton(colors),
           const SizedBox(height: 32),
         ],
       ),
@@ -98,33 +91,114 @@ class _EditLapsRacePageState extends State<EditLapsRacePage> {
 
   Widget topBar(ColorScheme colors, Race race) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         PageTitleWidget(
           intro: 'laps_race'.tr(),
           title: race.name,
           showBackButton: true,
         ),
+        Expanded(child: Container()),
+        deleteButton(colors, race),
       ],
     );
   }
 
-  Widget numberOfLaps(ColorScheme colors) {
+  Widget deleteButton(ColorScheme colors, Race race) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 64),
+      child: Container(
+        width: 46,
+        height: 46,
+        decoration: BoxDecoration(
+          color: colors.primary,
+          borderRadius: BorderRadius.circular(25),
+        ),
+        child: IconButton(
+          icon: Icon(
+            Icons.delete_outlined,
+            color: colors.secondary,
+            size: 28,
+          ),
+          onPressed: () => _showDeleteConfirmation(context, colors, race),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showDeleteConfirmation(BuildContext context, ColorScheme colors, Race race) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+            side: BorderSide(color: colors.outline, width: 2),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'delete_race_confirmation'.tr(),
+                  style: Theme.of(context).textTheme.displayMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Expanded(child: _cancelButton(colors)),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Container(
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: colors.error,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: TextButton(
+                          child: Text(
+                            'delete'.tr(),
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          onPressed: () {
+                            DatabaseHelper.instance.deleteRace(race.id!);
+                            Navigator.of(context).pop();
+                            Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(
+                                builder: (context) => const HomePage(),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _cancelButton(ColorScheme colors) {
     return Container(
-      height: 54,
-      width: 110,
       decoration: BoxDecoration(
         border: Border.all(color: colors.outline, width: 2),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(10),
       ),
-      child: NumberPicker(
-          value: _laps,
-          minValue: 1,
-          maxValue: 200,
-          itemHeight: 54,
-          itemCount: 1,
-          onChanged: (value) => setState(() => _laps = value),
-          textStyle: Theme.of(context).textTheme.displayMedium,
-          selectedTextStyle: Theme.of(context).textTheme.displayMedium),
+      height: 50,
+      child: TextButton(
+        child: Text(
+          'cancel'.tr(),
+          style: Theme.of(context).textTheme.displaySmall,
+        ),
+        onPressed: () => Navigator.of(context).pop(),
+      ),
     );
   }
 
@@ -191,7 +265,8 @@ class _EditLapsRacePageState extends State<EditLapsRacePage> {
     );
   }
 
-  Widget startRaceButton(ColorScheme colors, int laps, int minutes, int seconds, int milliseconds) {
+  Widget startRaceButton(ColorScheme colors) {
+    final idealTimeMs = (_minutes * 60 * 1000) + (_seconds * 1000) + _milliseconds;
     return Container(
       height: 60,
       width: MediaQuery.of(context).size.width - 96,
@@ -200,14 +275,14 @@ class _EditLapsRacePageState extends State<EditLapsRacePage> {
         borderRadius: BorderRadius.circular(25),
       ),
       child: TextButton(
-        onPressed: () => {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => LapsRacePage(
-                  laps: laps, minutes: minutes, seconds: seconds, milliseconds: milliseconds, raceId: widget.id),
+        onPressed: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => LapsRacePage(
+              idealTimeMs: idealTimeMs,
+              raceId: widget.id,
             ),
           ),
-        },
+        ),
         child: Text(
           "go_to_race".tr(),
           style: Theme.of(context).textTheme.bodyMedium,
