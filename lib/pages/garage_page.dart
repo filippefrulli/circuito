@@ -1,5 +1,6 @@
 import 'package:circuito/objects/car.dart';
 import 'package:circuito/utils/database.dart';
+import 'package:circuito/widgets/app_button.dart';
 import 'package:circuito/widgets/page_title.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -81,9 +82,16 @@ class _GaragePageState extends State<GaragePage> {
 
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return Center(
-              child: Text(
-                'no_cars'.tr(),
-                style: TextStyle(color: colors.onSurface),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.directions_car_outlined, size: 56, color: colors.tertiary),
+                  const SizedBox(height: 16),
+                  Text(
+                    'no_cars_yet'.tr(),
+                    style: Theme.of(context).textTheme.labelMedium,
+                  ),
+                ],
               ),
             );
           }
@@ -137,20 +145,9 @@ class _GaragePageState extends State<GaragePage> {
   }
 
   Widget addCarButton(ColorScheme colors) {
-    return Container(
-      height: 60,
-      width: MediaQuery.of(context).size.width - 96,
-      decoration: BoxDecoration(
-        color: colors.primary,
-        borderRadius: BorderRadius.circular(25),
-      ),
-      child: TextButton(
-        onPressed: () => {_showAddCarDialog(colors)},
-        child: Text(
-          "add_car".tr(),
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
-      ),
+    return AppButton(
+      label: 'add_car'.tr(),
+      onPressed: () => _showAddCarDialog(colors),
     );
   }
 

@@ -4,6 +4,7 @@ import 'package:circuito/pages/garage_page.dart';
 import 'package:circuito/pages/home_page.dart';
 import 'package:circuito/pages/settings/language_page.dart';
 import 'package:circuito/utils/navigation.dart';
+import 'package:circuito/utils/transitions.dart';
 import 'package:circuito/widgets/race_timer_banner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -131,6 +132,20 @@ class MyApp extends StatelessWidget {
               fontWeight: FontWeight.w400,
             ),
 
+            // TITLE STYLES (used for race/section headings)
+            titleLarge: TextStyle(
+              fontSize: 22.0,
+              color: Colors.black,
+              fontWeight: FontWeight.w600,
+              fontFamily: 'Raleway',
+            ),
+            titleMedium: TextStyle(
+              fontSize: 18.0,
+              color: Colors.black,
+              fontWeight: FontWeight.w400,
+              fontFamily: 'Raleway',
+            ),
+
             //ACCENT COLOR
             headlineSmall: TextStyle(
               fontSize: 16.0,
@@ -158,13 +173,9 @@ class SplashState extends State<Splash> {
     bool seen = (prefs.getBool('skip_intro') ?? false);
 
     if (seen && mounted) {
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const HomePage()));
+      Navigator.of(context).pushReplacement(slideRoute(const HomePage()));
     } else if (mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => const LanguagePage(),
-        ),
-      );
+      Navigator.of(context).pushReplacement(slideRoute(const LanguagePage()));
     }
   }
 

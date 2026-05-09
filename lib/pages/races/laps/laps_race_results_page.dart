@@ -3,14 +3,12 @@ import 'dart:math';
 import 'package:circuito/objects/lap_result.dart';
 import 'package:circuito/objects/race.dart';
 import 'package:circuito/pages/home_page.dart';
+import 'package:circuito/utils/app_colors.dart';
 import 'package:circuito/utils/database.dart';
+import 'package:circuito/utils/transitions.dart';
 import 'package:circuito/widgets/page_title.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-
-const _f1Purple = Color(0xFF9B00FF);
-const _f1Green = Color(0xFF00C800);
-const _f1Red = Color(0xFFE8002D);
 
 class LapsRaceResultsPage extends StatefulWidget {
   final int raceId;
@@ -159,14 +157,14 @@ class _LapsRaceResultsPageState extends State<LapsRaceResultsPage> {
             itemBuilder: (context, index) {
               final lap = laps[index];
               final isFastest = lap.completionTime == fastestTime;
-              final Color lapTimeColor = isFastest ? _f1Purple : colors.onSurface;
+              final Color lapTimeColor = isFastest ? AppColors.lapFastest : colors.onSurface;
               final Color deltaColor;
               if (isFastest) {
-                deltaColor = _f1Purple;
+                deltaColor = AppColors.lapFastest;
               } else if (lap.timeDifference < 0) {
-                deltaColor = _f1Green;
+                deltaColor = AppColors.lapGain;
               } else if (lap.timeDifference > 0) {
-                deltaColor = _f1Red;
+                deltaColor = AppColors.lapLoss;
               } else {
                 deltaColor = colors.onSurface;
               }
@@ -176,7 +174,7 @@ class _LapsRaceResultsPageState extends State<LapsRaceResultsPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 decoration: BoxDecoration(
                   border: Border.all(
-                    color: isFastest ? _f1Purple : colors.outline,
+                    color: isFastest ? AppColors.lapFastest : colors.outline,
                     width: isFastest ? 2 : 2,
                   ),
                   borderRadius: BorderRadius.circular(8),
@@ -231,11 +229,7 @@ class _LapsRaceResultsPageState extends State<LapsRaceResultsPage> {
       ),
       child: TextButton(
         onPressed: () {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const HomePage(),
-            ),
-          );
+          Navigator.of(context).pushReplacement(slideRoute(const HomePage()));
         },
         child: Text(
           'close'.tr(),

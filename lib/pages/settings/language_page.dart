@@ -1,4 +1,5 @@
 import 'package:circuito/pages/home_page.dart';
+import 'package:circuito/utils/transitions.dart';
 import 'package:circuito/widgets/page_title.dart';
 import 'package:delayed_display/delayed_display.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -153,11 +154,7 @@ class _LanguagePageState extends State<LanguagePage> {
                 Navigator.of(context).pop();
               } else if (mounted && !seen) {
                 prefs.setBool('skip_intro', true);
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(
-                    builder: (context) => const HomePage(),
-                  ),
-                );
+                Navigator.of(context).pushReplacement(slideRoute(const HomePage()));
               }
             },
             child: Text(

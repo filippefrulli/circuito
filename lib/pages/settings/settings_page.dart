@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:circuito/pages/settings/language_page.dart';
 import 'package:circuito/pages/settings/privacy_policy_page.dart';
+import 'package:circuito/utils/transitions.dart';
 import 'package:circuito/widgets/divider.dart';
 import 'package:circuito/widgets/page_title.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -42,12 +43,7 @@ class _SettingsPageState extends State<SettingsPage> {
             TextButton(
               child: rowWidget(("edit_language".tr()), Icons.language_outlined),
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const LanguagePage(showBackButton: true),
-                  ),
-                );
+                Navigator.push(context, slideRoute(const LanguagePage(showBackButton: true)));
               },
             ),
             const DividerWidget(padding: 0, height: 32),
@@ -101,12 +97,7 @@ class _SettingsPageState extends State<SettingsPage> {
             TextButton(
               child: rowWidget(("privacy_policy".tr()), Icons.receipt),
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const PrivacyPolicy(),
-                  ),
-                );
+                Navigator.push(context, slideRoute(const PrivacyPolicy()));
               },
             ),
             const DividerWidget(padding: 0, height: 16),

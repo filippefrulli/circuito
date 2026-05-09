@@ -4,15 +4,14 @@ import 'dart:math';
 import 'package:circuito/objects/lap_result.dart';
 import 'package:circuito/pages/races/laps/laps_race_results_page.dart';
 import 'package:circuito/services/race_timer_service.dart';
+import 'package:circuito/utils/app_colors.dart';
 import 'package:circuito/utils/database.dart';
+import 'package:circuito/utils/transitions.dart';
+import 'package:circuito/widgets/app_button.dart';
 import 'package:circuito/widgets/page_title.dart';
 import 'package:circuito/widgets/race_result_popup.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-
-const _f1Purple = Color(0xFF9B00FF);
-const _f1Green = Color(0xFF00C800);
-const _f1Red = Color(0xFFE8002D);
 
 class _LapDelta {
   final int lapTimeMs;
@@ -95,12 +94,36 @@ class _LapsRacePageState extends State<LapsRacePage> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    return Scaffold(
-      body: Stack(
-        children: [
-          body(colors),
-          if (_currentDelta != null)
-            RaceResultPopup(
+    return PopScope(
+      canPop: !started,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text('abandon_race_title'.tr()),
+            content: Text('abandon_race_body'.tr()),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text('cancel'.tr()),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text('abandon'.tr()),
+              ),
+            ],
+          ),
+        );
+        if (confirmed == true && context.mounted) Navigator.pop(context);
+      },
+      child: Scaffold(
+        backgroundColor: started ? AppColors.activeRaceBorder : null,
+        body: Stack(
+          children: [
+            body(colors),
+            if (_currentDelta != null)
+              RaceResultPopup(
               primaryText: _formatTime(_currentDelta!.lapTimeMs),
               subtitle: _currentDelta!.diffVsPrevMs != null
                   ? _formatTimeDifference(_currentDelta!.diffVsPrevMs!)
@@ -113,7 +136,8 @@ class _LapsRacePageState extends State<LapsRacePage> {
                   : null,
               color: _currentDelta!.color,
             ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -121,8 +145,9 @@ class _LapsRacePageState extends State<LapsRacePage> {
   Widget body(ColorScheme colors) {
     return Container(
       decoration: BoxDecoration(
+        color: Colors.white,
         border: Border.all(
-          color: started ? Colors.green[800]! : Colors.white,
+          color: started ? AppColors.activeRaceBorder : Colors.white,
           width: 12,
         ),
         borderRadius: BorderRadius.circular(55),
@@ -212,22 +237,9 @@ class _LapsRacePageState extends State<LapsRacePage> {
     if (!started) return const SizedBox();
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: Container(
-        height: 60,
-        width: MediaQuery.of(context).size.width - 96,
-        decoration: BoxDecoration(
-          color: colors.primary,
-          borderRadius: BorderRadius.circular(25),
-        ),
-        child: TextButton(
-          onPressed: _onLapComplete,
-          child: Text(
-            'lap_completed'.tr(),
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: colors.onPrimary,
-                ),
-          ),
-        ),
+      child: AppButton(
+        label: 'lap_completed'.tr(),
+        onPressed: () => _onLapComplete(),
       ),
     );
   }
@@ -236,22 +248,11 @@ class _LapsRacePageState extends State<LapsRacePage> {
     if (!started) return const SizedBox();
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: Container(
-        height: 60,
-        width: MediaQuery.of(context).size.width - 96,
-        decoration: BoxDecoration(
-          color: colors.error,
-          borderRadius: BorderRadius.circular(25),
-        ),
-        child: TextButton(
-          onPressed: () => _showEndRaceConfirmation(colors),
-          child: Text(
-            'end_race'.tr(),
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.white,
-                ),
-          ),
-        ),
+      child: AppButton(
+        label: 'end_race'.tr(),
+        backgroundColor: colors.error,
+        textStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white),
+        onPressed: () => _showEndRaceConfirmation(colors),
       ),
     );
   }
@@ -328,25 +329,12 @@ class _LapsRacePageState extends State<LapsRacePage> {
 
   Widget startRaceButton(ColorScheme colors) {
     if (started) return const SizedBox();
-    return Container(
-      height: 60,
-      width: MediaQuery.of(context).size.width - 96,
-      decoration: BoxDecoration(
-        color: colors.primary,
-        borderRadius: BorderRadius.circular(25),
-      ),
-      child: TextButton(
-        onPressed: () => setState(() {
-          started = true;
-          _startRace();
-        }),
-        child: Text(
-          'start_race'.tr(),
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: colors.onPrimary,
-              ),
-        ),
-      ),
+    return AppButton(
+      label: 'start_race'.tr(),
+      onPressed: () => setState(() {
+        started = true;
+        _startRace();
+      }),
     );
   }
 
@@ -365,7 +353,7 @@ class _LapsRacePageState extends State<LapsRacePage> {
     service.setRacePageVisible(true);
   }
 
-  void _onLapComplete() {
+  Future<void> _onLapComplete() async {
     final service = RaceTimerService.instance;
     final completionTime = service.lapCurrentTimeMs;
 
@@ -380,12 +368,12 @@ class _LapsRacePageState extends State<LapsRacePage> {
     final isFastest = _fastestLapMs == 0 || completionTime < _fastestLapMs;
     final Color deltaColor;
     if (isFastest) {
-      deltaColor = _f1Purple;
+      deltaColor = AppColors.lapFastest;
       _fastestLapMs = completionTime;
     } else if (primaryDiff != null && primaryDiff < 0) {
-      deltaColor = _f1Green;
+      deltaColor = AppColors.lapGain;
     } else {
-      deltaColor = _f1Red;
+      deltaColor = AppColors.lapLoss;
     }
 
     setState(() {
@@ -403,7 +391,7 @@ class _LapsRacePageState extends State<LapsRacePage> {
 
     // Persist: store vs-ideal if set, else vs-prev, else 0
     final int timeDifference = diffVsIdeal ?? diffVsPrev ?? 0;
-    DatabaseHelper.instance.insertLapResult(
+    await DatabaseHelper.instance.insertLapResult(
       LapResult(
         raceId: widget.raceId,
         lapNumber: service.lapCurrent,
@@ -441,9 +429,7 @@ class _LapsRacePageState extends State<LapsRacePage> {
     RaceTimerService.instance.clearRace();
     if (mounted) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => LapsRaceResultsPage(raceId: widget.raceId),
-        ),
+        slideRoute(LapsRaceResultsPage(raceId: widget.raceId)),
       );
     }
   }

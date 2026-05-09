@@ -4,6 +4,8 @@ import 'package:circuito/objects/race.dart';
 import 'package:circuito/pages/races/timed/edit_timed_race_page.dart';
 import 'package:circuito/pages/races/laps/edit_laps_race_page.dart';
 import 'package:circuito/utils/database.dart';
+import 'package:circuito/utils/transitions.dart';
+import 'package:circuito/widgets/app_button.dart';
 import 'package:circuito/widgets/page_title.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -46,15 +48,9 @@ class _SelectRaceTypePageState extends State<SelectRaceTypePage> {
 
     if (!mounted) return;
     if (type == RaceType.timed) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => EditTimedRacePage(id: id)),
-      );
+      Navigator.pushReplacement(context, slideRoute(EditTimedRacePage(id: id)));
     } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => EditLapsRacePage(id: id)),
-      );
+      Navigator.pushReplacement(context, slideRoute(EditLapsRacePage(id: id)));
     }
   }
 
@@ -144,22 +140,24 @@ class _SelectRaceTypePageState extends State<SelectRaceTypePage> {
 
   Widget _selectButton(ColorScheme colors) {
     final isEnabled = _selectedType != null && !_isCreating;
-    return SizedBox(
-      height: 60,
-      width: double.infinity,
-      child: Container(
-        decoration: BoxDecoration(
-          color: isEnabled ? colors.primary : colors.tertiary,
-          borderRadius: BorderRadius.circular(25),
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        AppButton(
+          label: 'select'.tr(),
+          enabled: isEnabled,
+          onPressed: () => _createRace(_selectedType!),
         ),
-        child: TextButton(
-          onPressed: isEnabled ? () => _createRace(_selectedType!) : null,
-          child: Text(
-            'select'.tr(),
-            style: Theme.of(context).textTheme.bodyMedium,
+        if (_isCreating)
+          const SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(
+              color: Colors.white,
+              strokeWidth: 2.5,
+            ),
           ),
-        ),
-      ),
+      ],
     );
   }
 }

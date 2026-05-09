@@ -4,7 +4,10 @@ import 'package:circuito/pages/races/create_race_page.dart';
 import 'package:circuito/pages/races/laps/edit_laps_race_page.dart';
 import 'package:circuito/pages/races/timed/edit_timed_race_page.dart';
 import 'package:circuito/pages/settings/settings_page.dart';
+import 'package:circuito/utils/app_colors.dart';
 import 'package:circuito/utils/database.dart';
+import 'package:circuito/utils/transitions.dart';
+import 'package:circuito/widgets/app_button.dart';
 import 'package:circuito/widgets/page_title.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -89,14 +92,7 @@ class _HomePageState extends State<HomePage> {
             color: colors.secondary,
             size: 28,
           ),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const SettingsPage(),
-              ),
-            );
-          },
+          onPressed: () => Navigator.push(context, slideRoute(const SettingsPage())),
         ),
       ),
     );
@@ -160,14 +156,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget completedRacesButton(ColorScheme colors) {
     return TextButton(
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const CompletedRacesPage(),
-          ),
-        );
-      },
+      onPressed: () => Navigator.push(context, slideRoute(const CompletedRacesPage())),
       child: Container(
         padding: const EdgeInsets.all(16),
         height: 70,
@@ -221,10 +210,9 @@ class _HomePageState extends State<HomePage> {
                       onPressed: () async {
                         await Navigator.push(
                           context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                race.type == 2 ? EditLapsRacePage(id: race.id!) : EditTimedRacePage(id: race.id!),
-                          ),
+                          slideRoute(race.type == 2
+                              ? EditLapsRacePage(id: race.id!)
+                              : EditTimedRacePage(id: race.id!)),
                         );
                         _refreshIncompleteRaces();
                       },
@@ -259,7 +247,7 @@ class _HomePageState extends State<HomePage> {
           Text(
             'in_progress'.tr(),
             style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                  color: Colors.green[600],
+                  color: AppColors.raceActiveGreen,
                 ),
           ),
           Row(
@@ -284,27 +272,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget newRaceButton(ColorScheme colors) {
-    return Container(
-      height: 60,
-      width: MediaQuery.of(context).size.width - 96,
-      decoration: BoxDecoration(
-        color: colors.primary,
-        borderRadius: BorderRadius.circular(25),
-      ),
-      child: TextButton(
-        onPressed: () async {
-          await Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => const CreateRacePage(),
-            ),
-          );
-          _refreshIncompleteRaces();
-        },
-        child: Text(
-          "new_race".tr(),
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
-      ),
+    return AppButton(
+      label: 'new_race'.tr(),
+      onPressed: () async {
+        await Navigator.of(context).push(slideRoute(const CreateRacePage()));
+        _refreshIncompleteRaces();
+      },
     );
   }
 

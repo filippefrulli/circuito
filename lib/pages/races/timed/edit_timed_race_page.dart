@@ -4,6 +4,7 @@ import 'package:circuito/pages/home_page.dart';
 import 'package:circuito/pages/races/timed/edit_timed_race_section_page.dart';
 import 'package:circuito/pages/races/timed/timed_race_results_page.dart';
 import 'package:circuito/utils/database.dart';
+import 'package:circuito/utils/transitions.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
@@ -388,23 +389,11 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
             child: InkWell(
               onTap: () {
                 if (section.completed == 1) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => TimedRaceResultsPage(
-                        raceId: widget.id,
-                      ),
-                    ),
-                  );
+                  Navigator.push(context, slideRoute(TimedRaceResultsPage(raceId: widget.id)));
                 } else {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => EditTimedRaceSectionPage(
-                        sectionId: section.id!,
-                        raceId: widget.id,
-                      ),
-                    ),
+                    slideRoute(EditTimedRaceSectionPage(sectionId: section.id!, raceId: widget.id)),
                   ).then((_) => setState(() => _loadSections()));
                 }
               },
@@ -660,12 +649,7 @@ class _EditTimedRacePageState extends State<EditTimedRacePage> {
                           onPressed: () {
                             DatabaseHelper.instance.endRace(race.id!);
                             Navigator.of(context).pop();
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const HomePage(),
-                              ),
-                            );
+                            Navigator.pushReplacement(context, slideRoute(const HomePage()));
                           },
                         ),
                       ),

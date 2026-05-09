@@ -1,5 +1,6 @@
 import 'package:circuito/objects/circuit.dart';
 import 'package:circuito/utils/database.dart';
+import 'package:circuito/widgets/app_button.dart';
 import 'package:circuito/widgets/page_title.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -79,13 +80,17 @@ class _CircuitsPageState extends State<CircuitsPage> {
           }
 
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Padding(
-              padding: const EdgeInsets.all(16),
-              child: Center(
-                child: Text(
-                  'No circuits yet',
-                  style: Theme.of(context).textTheme.displayMedium,
-                ),
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.flag_outlined, size: 56, color: colors.tertiary),
+                  const SizedBox(height: 16),
+                  Text(
+                    'no_circuits_yet'.tr(),
+                    style: Theme.of(context).textTheme.labelMedium,
+                  ),
+                ],
               ),
             );
           }
@@ -117,20 +122,9 @@ class _CircuitsPageState extends State<CircuitsPage> {
   }
 
   Widget addCircuitButton(ColorScheme colors) {
-    return Container(
-      height: 60,
-      width: MediaQuery.of(context).size.width - 96,
-      decoration: BoxDecoration(
-        color: colors.primary,
-        borderRadius: BorderRadius.circular(25),
-      ),
-      child: TextButton(
-        onPressed: () => {_showAddCircuitDialog(colors)},
-        child: Text(
-          "add_circuit".tr(),
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
-      ),
+    return AppButton(
+      label: 'add_circuit'.tr(),
+      onPressed: () => _showAddCircuitDialog(colors),
     );
   }
 

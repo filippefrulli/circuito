@@ -91,5 +91,11 @@
     "next": "Avanti",
     "no_circuits": "Nessun circuito aggiunto",
     "time_trial_description": "Gara divisa in sezioni con prove cronometrate ordinate. Ferma il timer quando ogni prova è completata e accumula il tuo punteggio.",
-    "lap_race_description": "Timer a giro libero che si azzera dopo ogni giro. Imposta opzionalmente un tempo ideale per confrontarti."
+    "lap_race_description": "Timer a giro libero che si azzera dopo ogni giro. Imposta opzionalmente un tempo ideale per confrontarti.",
+    "abandon_race_title": "Abbandonare la gara?",
+    "abandon_race_body": "La gara è ancora in corso. Se torni indietro ora, la sessione corrente andrà persa.",
+    "abandon": "Abbandona",
+    "stop": "Stop",
+    "no_cars_yet": "Nessuna macchina nel garage",
+    "no_circuits_yet": "Nessun circuito aggiunto"
 }

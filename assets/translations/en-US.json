@@ -90,5 +90,11 @@
     "save": "Save",
     "rename_race": "Rename race",
     "coefficient": "Coefficient",
-    "coefficient_hint": "Auto"
+    "coefficient_hint": "Auto",
+    "abandon_race_title": "Abandon race?",
+    "abandon_race_body": "The race is still in progress. If you go back now, your current session will be lost.",
+    "abandon": "Abandon",
+    "stop": "Stop",
+    "no_cars_yet": "No cars in your garage yet",
+    "no_circuits_yet": "No circuits added yet"
 }

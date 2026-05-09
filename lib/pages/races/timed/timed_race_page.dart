@@ -5,7 +5,10 @@ import 'package:circuito/objects/timed_challenge_result.dart';
 import 'package:circuito/objects/timed_race_section.dart';
 import 'package:circuito/pages/races/timed/timed_race_results_page.dart';
 import 'package:circuito/services/race_timer_service.dart';
+import 'package:circuito/utils/app_colors.dart';
 import 'package:circuito/utils/database.dart';
+import 'package:circuito/utils/transitions.dart';
+import 'package:circuito/widgets/app_button.dart';
 import 'package:circuito/widgets/page_title.dart';
 import 'package:circuito/widgets/race_result_popup.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -68,16 +71,41 @@ class _TimedRacePageState extends State<TimedRacePage> {
       return Scaffold(body: Center(child: Text('no_challenges'.tr())));
     }
 
-    return Scaffold(
-      body: Stack(
-        children: [
-          body(colors, _section),
-          if (_resultDiffMs != null)
-            RaceResultPopup(
-              primaryText: _formatDiffText(_resultDiffMs!),
-              color: _resultDiffMs! > 0 ? Colors.red[700]! : Colors.green[700]!,
-            ),
-        ],
+    return PopScope(
+      canPop: !started || isEnded,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text('abandon_race_title'.tr()),
+            content: Text('abandon_race_body'.tr()),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text('cancel'.tr()),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text('abandon'.tr()),
+              ),
+            ],
+          ),
+        );
+        if (confirmed == true && context.mounted) Navigator.pop(context);
+      },
+      child: Scaffold(
+        backgroundColor: started && !isEnded ? AppColors.activeRaceBorder : null,
+        body: Stack(
+          children: [
+            body(colors, _section),
+            if (_resultDiffMs != null)
+              RaceResultPopup(
+                primaryText: _formatDiffText(_resultDiffMs!),
+                color: _resultDiffMs! > 0 ? AppColors.lapLoss : AppColors.lapGain,
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -85,14 +113,15 @@ class _TimedRacePageState extends State<TimedRacePage> {
   Widget body(ColorScheme colors, TimedRaceSection section) {
     return Container(
       decoration: BoxDecoration(
+        color: Colors.white,
         border: Border.all(
-          color: started && !isEnded ? Colors.green[800]! : Colors.white,
+          color: started && !isEnded ? AppColors.activeRaceBorder : Colors.white,
           width: 12,
         ),
         borderRadius: BorderRadius.circular(55),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 32),
         child: Column(
           children: [
             topBar(colors),
@@ -204,88 +233,49 @@ class _TimedRacePageState extends State<TimedRacePage> {
   }
 
   Widget startRaceButton(ColorScheme colors) {
-    return started
-        ? Container()
-        : Container(
-            height: 60,
-            width: MediaQuery.of(context).size.width - 96,
-            decoration: BoxDecoration(
-              color: Colors.green[800],
-              borderRadius: BorderRadius.circular(25),
-            ),
-            child: TextButton(
-              onPressed: () {
-                setState(() {
-                  started = true;
-                  _startTimer();
-                });
-              },
-              child: Text(
-                'START',
-                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-            ),
-          );
+    if (started) return const SizedBox();
+    return AppButton(
+      label: 'start_race'.tr(),
+      backgroundColor: AppColors.startButton,
+      onPressed: () => setState(() {
+        started = true;
+        _startTimer();
+      }),
+    );
   }
 
   Widget endSectionButton(ColorScheme colors) {
-    return isEnded
-        ? Container(
-            height: 60,
-            width: MediaQuery.of(context).size.width - 96,
-            decoration: BoxDecoration(
-              color: colors.primary,
-              borderRadius: BorderRadius.circular(25),
-            ),
-            child: TextButton(
-              onPressed: () async {
-                final results = await _calculateSectionResults();
-                await DatabaseHelper.instance.markSectionAsCompleted(
-                  widget.sectionId,
-                  widget.raceId,
-                  timeDifference: results['timeDifference'],
-                );
-                RaceTimerService.instance.clearRace();
-                if (mounted) {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          TimedRaceResultsPage(raceId: widget.raceId),
-                    ),
-                  );
-                }
-              },
-              child: Text(
-                'complete_section'.tr(),
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            ),
-          )
-        : Container();
+    if (!isEnded) return const SizedBox();
+    return AppButton(
+      label: 'complete_section'.tr(),
+      onPressed: () async {
+        final results = await _calculateSectionResults();
+        await DatabaseHelper.instance.markSectionAsCompleted(
+          widget.sectionId,
+          widget.raceId,
+          timeDifference: results['timeDifference'],
+        );
+        RaceTimerService.instance.clearRace();
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            slideRoute(TimedRaceResultsPage(raceId: widget.raceId)),
+          );
+        }
+      },
+    );
   }
 
   Widget challengeCompletedButton(ColorScheme colors) {
-    return started && !isEnded
-        ? Container(
-            height: 60,
-            width: MediaQuery.of(context).size.width - 96,
-            decoration: BoxDecoration(
-              color: colors.error,
-              borderRadius: BorderRadius.circular(25),
-            ),
-            child: TextButton(
-              onPressed: _onChallengeComplete,
-              child: Text(
-                'STOP',
-                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-            ),
-          )
-        : Container();
+    if (!started || isEnded) return const SizedBox();
+    return AppButton(
+      label: 'stop'.tr(),
+      backgroundColor: colors.error,
+      textStyle: Theme.of(context)
+          .textTheme
+          .bodyMedium
+          ?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+      onPressed: _onChallengeComplete,
+    );
   }
 
   String _formatDiffText(int diffMs) {

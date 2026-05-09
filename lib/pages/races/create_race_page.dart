@@ -2,6 +2,8 @@ import 'package:circuito/objects/car.dart';
 import 'package:circuito/objects/circuit.dart';
 import 'package:circuito/pages/races/select_race_type_page.dart';
 import 'package:circuito/utils/database.dart';
+import 'package:circuito/utils/transitions.dart';
+import 'package:circuito/widgets/app_button.dart';
 import 'package:circuito/widgets/page_title.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -231,31 +233,12 @@ class _CreateRacePageState extends State<CreateRacePage> {
 
   Widget nextButton(ColorScheme colors) {
     final isValid = selectedCar != null && selectedCircuit != null;
-    return Container(
-      height: 60,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: isValid ? colors.primary : colors.tertiary,
-        borderRadius: BorderRadius.circular(25),
-      ),
-      child: TextButton(
-        onPressed: isValid
-            ? () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => SelectRaceTypePage(
-                      car: selectedCar!,
-                      circuit: selectedCircuit!,
-                    ),
-                  ),
-                );
-              }
-            : null,
-        child: Text(
-          'next'.tr(),
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
+    return AppButton(
+      label: 'next'.tr(),
+      enabled: isValid,
+      onPressed: () => Navigator.push(
+        context,
+        slideRoute(SelectRaceTypePage(car: selectedCar!, circuit: selectedCircuit!)),
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'package:circuito/objects/timed_challenge_result.dart';
 import 'package:circuito/objects/timed_race_section.dart';
 import 'package:circuito/pages/home_page.dart';
 import 'package:circuito/utils/database.dart';
+import 'package:circuito/utils/transitions.dart';
 import 'package:circuito/widgets/page_title.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -277,11 +278,7 @@ class _TimedRaceResultsPageState extends State<TimedRaceResultsPage> {
       ),
       child: TextButton(
         onPressed: () {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const HomePage(),
-            ),
-          );
+          Navigator.of(context).pushReplacement(slideRoute(const HomePage()));
         },
         child: Text(
           'close'.tr(),

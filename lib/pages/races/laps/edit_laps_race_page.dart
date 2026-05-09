@@ -2,6 +2,8 @@ import 'package:circuito/objects/race.dart';
 import 'package:circuito/pages/home_page.dart';
 import 'package:circuito/pages/races/laps/laps_race_page.dart';
 import 'package:circuito/utils/database.dart';
+import 'package:circuito/utils/transitions.dart';
+import 'package:circuito/widgets/app_button.dart';
 import 'package:circuito/widgets/page_title.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -166,11 +168,7 @@ class _EditLapsRacePageState extends State<EditLapsRacePage> {
                           onPressed: () {
                             DatabaseHelper.instance.deleteRace(race.id!);
                             Navigator.of(context).pop();
-                            Navigator.of(context).pushReplacement(
-                              MaterialPageRoute(
-                                builder: (context) => const HomePage(),
-                              ),
-                            );
+                            Navigator.of(context).pushReplacement(slideRoute(const HomePage()));
                           },
                         ),
                       ),
@@ -267,26 +265,10 @@ class _EditLapsRacePageState extends State<EditLapsRacePage> {
 
   Widget startRaceButton(ColorScheme colors) {
     final idealTimeMs = (_minutes * 60 * 1000) + (_seconds * 1000) + _milliseconds;
-    return Container(
-      height: 60,
-      width: MediaQuery.of(context).size.width - 96,
-      decoration: BoxDecoration(
-        color: colors.primary,
-        borderRadius: BorderRadius.circular(25),
-      ),
-      child: TextButton(
-        onPressed: () => Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => LapsRacePage(
-              idealTimeMs: idealTimeMs,
-              raceId: widget.id,
-            ),
-          ),
-        ),
-        child: Text(
-          "go_to_race".tr(),
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
+    return AppButton(
+      label: 'go_to_race'.tr(),
+      onPressed: () => Navigator.of(context).push(
+        slideRoute(LapsRacePage(idealTimeMs: idealTimeMs, raceId: widget.id)),
       ),
     );
   }

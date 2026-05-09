@@ -133,14 +133,6 @@ class RaceTimerService extends ChangeNotifier {
     return _formatMs(ms);
   }
 
-  String get displayLabel {
-    if (raceType == ActiveRaceType.laps) return 'Lap $lapCurrent';
-    if (raceType == ActiveRaceType.timed) {
-      return 'Challenge ${timedDisplayIndex + 1}/${timedChallenges.length}';
-    }
-    return '';
-  }
-
   // ── Internal ──────────────────────────────────────────────────────────────
 
   void _startTimer() {
