@@ -1,7 +1,7 @@
 name: circuito
 description: "Professional race timer & tracker"
 publish_to: 'none'
-version: 0.0.2
+version: 0.0.3
 
 environment:
   sdk: '>=3.4.4 <4.0.0'
